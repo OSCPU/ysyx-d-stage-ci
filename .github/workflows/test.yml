@@ -1,0 +1,11 @@
+# .github/workflows/test-trigger.yml
+name: Test CI Trigger
+on: [push, issues]
+jobs:
+  test-trigger:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check Event
+        run: |
+          echo "✅ CI被成功触发"
+          echo "事件类型: ${{ github.event_name }}"
