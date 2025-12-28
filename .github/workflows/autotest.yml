@@ -128,6 +128,16 @@ jobs:
           key: ${{ runner.os }}-dir-${{ steps.set-cache.outputs.cache-key }}
           restore-keys: |
             ${{ runner.os }}-dir-
+            
+      - name: Debug variables before clone
+        run: |
+          echo "原始REPO值: '${{ needs.parse.outputs.REPO }}'"
+          echo "原始BRANCH值: '${{ needs.parse.outputs.BRANCH }}'"
+          echo "REPO长度: ${#{{ needs.parse.outputs.REPO }}}"
+          echo "BRANCH长度: ${#{{ needs.parse.outputs.BRANCH }}}"
+          
+          # 显示十六进制值（查看隐藏字符）
+          echo -n "${{ needs.parse.outputs.REPO }}" | hexdump -C
 
       - name: Clone target repo
         if: steps.cache-dir.outputs.cache-hit != 'true'
