@@ -651,6 +651,26 @@ jobs:
           cache-key: ${{ needs.setup.outputs.cache-key }}
           MAKEFLAGS: ${{ needs.setup.outputs.MAKEFLAGS }}
 
+      - name: Debug monitor.py
+        run: |
+          echo "=== 调试信息 ==="
+          pwd
+          ls -la
+          
+          echo -e "\n=== 查找 monitor.py ==="
+          find . -name "monitor.py" 2>/dev/null
+          
+          echo -e "\n=== 环境变量 ==="
+          env | grep -i "monitor\|ysyx"
+          
+          echo -e "\n=== 配置变量 ==="
+          echo "EXPECTED_OUTPUT: $EXPECTED_OUTPUT"
+          echo "OUTPUT_CASE_SENSITIVE: $OUTPUT_CASE_SENSITIVE"
+          echo "TIMEOUT_SECONDS: $TIMEOUT_SECONDS"
+          
+          echo -e "\n=== 检查 YSYX_HOME ==="
+          ls -la "$YSYX_HOME/" 2>/dev/null | head -10
+
       - name: hello
         run: |
           KEY=$(head -c 5 /dev/urandom | base32)
