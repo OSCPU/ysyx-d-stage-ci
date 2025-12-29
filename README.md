@@ -22,7 +22,7 @@ ysyx-workbench
 
 文件要求
 
-    npc目录下必须有 ysyx_xxxxxxxx.v 文件（xxxxxxxx为你的学号）
+    npc目录下必须有 ysyx_xxxxxxxx.v 文件（xxxxxxxx为你的学号）,这个文件包含所有核的模块
     顶层模块名必须为 ysyx_xxxxxxxx
     主Makefile中必须正确设置 STUID 和 STUNAME
 
