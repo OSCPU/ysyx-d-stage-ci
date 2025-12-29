@@ -636,6 +636,26 @@ jobs:
 #          make -C $YSYX_HOME/npc run ALL=hello
 #          python $MONITOR_PY --middle="Hello World!" --good=$KEY make -C $YSYX_HOME/npc run mainargs=$KEY
 
+  hello:
+    needs: setup
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Common operations
+        uses: ./.github/actions/common
+        with:
+          YSYX_HOME: ${{ needs.setup.outputs.YSYX_HOME }}
+          cache-key: ${{ needs.setup.outputs.cache-key }}
+          MAKEFLAGS: ${{ needs.setup.outputs.MAKEFLAGS }}
+
+      - name: hello
+        run: |
+          KEY=$(head -c 5 /dev/urandom | base32)
+          python $MONITOR_PY --middle="Hello, AbstractMachine!" --good=$KEY make ARCH=minirv-npc -C $YSYX_HOME/am-kernels/kernels/hello run mainargs=$KEY
+
 
   cpu-tests:
     needs: setup
@@ -655,68 +675,69 @@ jobs:
       - name: cpu-tests
         run: |
           make ARCH=minirv-npc -C $YSYX_HOME/am-kernels/tests/cpu-tests run ALL=dummy
+          make ARCH=minirv-npc -C $YSYX_HOME/am-kernels/tests/cpu-tests run 
 
-  # riscv-tests:
-  #   needs: setup
-  #   runs-on: ubuntu-22.04
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #       with:
-  #         fetch-depth: 0
+  riscv-tests:
+    needs: setup
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-  #     - name: Common operations
-  #       uses: ./.github/actions/common
-  #       with:
-  #         YSYX_HOME: ${{ needs.setup.outputs.YSYX_HOME }}
-  #         cache-key: ${{ needs.setup.outputs.cache-key }}
-  #         MAKEFLAGS: ${{ needs.setup.outputs.MAKEFLAGS }}
+      - name: Common operations
+        uses: ./.github/actions/common
+        with:
+          YSYX_HOME: ${{ needs.setup.outputs.YSYX_HOME }}
+          cache-key: ${{ needs.setup.outputs.cache-key }}
+          MAKEFLAGS: ${{ needs.setup.outputs.MAKEFLAGS }}
 
-  #     - name: riscv-tests
-  #       run: |
-  #         git clone --depth 1 https://github.com/NJU-ProjectN/riscv-tests-am
-  #         make ARCH=riscv32e-ysyxsoc -C riscv-tests-am run TEST_ISA=i ALL=auipc
-  #         make ARCH=riscv32e-ysyxsoc -C riscv-tests-am run TEST_ISA=i
+      - name: riscv-tests
+        run: |
+          git clone --depth 1 https://github.com/NJU-ProjectN/riscv-tests-am
+          make ARCH=minirv-npc -C riscv-tests-am run TEST_ISA=i ALL=auipc
+          make ARCH=minirv-npc -C riscv-tests-am run TEST_ISA=i
 
-  # riscv-arch-test:
-  #   needs: setup
-  #   runs-on: ubuntu-22.04
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #       with:
-  #         fetch-depth: 0
+  riscv-arch-test:
+    needs: setup
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-  #     - name: Common operations
-  #       uses: ./.github/actions/common
-  #       with:
-  #         YSYX_HOME: ${{ needs.setup.outputs.YSYX_HOME }}
-  #         cache-key: ${{ needs.setup.outputs.cache-key }}
-  #         MAKEFLAGS: ${{ needs.setup.outputs.MAKEFLAGS }}
+      - name: Common operations
+        uses: ./.github/actions/common
+        with:
+          YSYX_HOME: ${{ needs.setup.outputs.YSYX_HOME }}
+          cache-key: ${{ needs.setup.outputs.cache-key }}
+          MAKEFLAGS: ${{ needs.setup.outputs.MAKEFLAGS }}
 
-  #     - name: riscv-arch-test
-  #       run: |
-  #         git clone --depth 1 https://github.com/NJU-ProjectN/riscv-arch-test-am
-  #         make ARCH=riscv32e-ysyxsoc -C riscv-arch-test-am run TEST_ISA=E ALL=add-01
-  #         make ARCH=riscv32e-ysyxsoc -C riscv-arch-test-am run TEST_ISA="E Zifencei"
+      - name: riscv-arch-test
+        run: |
+          git clone --depth 1 https://github.com/NJU-ProjectN/riscv-arch-test-am
+          make ARCH=minirv-npc -C riscv-arch-test-am run TEST_ISA=E ALL=add-01
+          make ARCH=minirv-npc -C riscv-arch-test-am run TEST_ISA="E Zifencei"
 
-  # microbench:
-  #   needs: setup
-  #   runs-on: ubuntu-22.04
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #       with:
-  #         fetch-depth: 0
+  microbench:
+    needs: setup
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-  #     - name: Common operations
-  #       uses: ./.github/actions/common
-  #       with:
-  #         YSYX_HOME: ${{ needs.setup.outputs.YSYX_HOME }}
-  #         cache-key: ${{ needs.setup.outputs.cache-key }}
-  #         MAKEFLAGS: ${{ needs.setup.outputs.MAKEFLAGS }}
+      - name: Common operations
+        uses: ./.github/actions/common
+        with:
+          YSYX_HOME: ${{ needs.setup.outputs.YSYX_HOME }}
+          cache-key: ${{ needs.setup.outputs.cache-key }}
+          MAKEFLAGS: ${{ needs.setup.outputs.MAKEFLAGS }}
 
-  #     - name: microbench
-  #       run: |
-  #         KEY=$(head -c 5 /dev/urandom | base32)
-  #         python $MONITOR_PY --good="$KEY" make ARCH=riscv32e-ysyxsoc -C $YSYX_HOME/am-kernels/benchmarks/microbench run mainargs=$KEY
+      - name: microbench
+        run: |
+          KEY=$(head -c 5 /dev/urandom | base32)
+          python $MONITOR_PY --good="$KEY" make ARCH=minirv-npc -C $YSYX_HOME/am-kernels/benchmarks/microbench run mainargs=$KEY
 
   # rt-thread:
   #   needs: setup
@@ -743,32 +764,32 @@ jobs:
   #         KEY=$(head -c 5 /dev/urandom | base32)
   #         python $MONITOR_PY --good=$KEY make ARCH=riscv32e-ysyxsoc run
 
-  # iverilog-microbench:
-  #   needs: setup
-  #   runs-on: ubuntu-22.04
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #       with:
-  #         fetch-depth: 0
+  iverilog-microbench:
+    needs: setup
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-  #     - name: Common operations
-  #       uses: ./.github/actions/common
-  #       with:
-  #         YSYX_HOME: ${{ needs.setup.outputs.YSYX_HOME }}
-  #         cache-key: ${{ needs.setup.outputs.cache-key }}
-  #         MAKEFLAGS: ${{ needs.setup.outputs.MAKEFLAGS }}
+      - name: Common operations
+        uses: ./.github/actions/common
+        with:
+          YSYX_HOME: ${{ needs.setup.outputs.YSYX_HOME }}
+          cache-key: ${{ needs.setup.outputs.cache-key }}
+          MAKEFLAGS: ${{ needs.setup.outputs.MAKEFLAGS }}
 
-  #     - name: compile microbench
-  #       run: |
-  #         make ARCH=riscv32e-npc -C $YSYX_HOME/am-kernels/benchmarks/microbench mainargs=the_insert-arg_rule_in_Makefile_will_insert_mainargs_here
+      - name: compile microbench
+        run: |
+          make ARCH=riscv32e-npc -C $YSYX_HOME/am-kernels/benchmarks/microbench mainargs=the_insert-arg_rule_in_Makefile_will_insert_mainargs_here
 
-  #     - name: run microbench with iverilog
-  #       run: |
-  #         make -C $NPC_HOME clean
-  #         KEY=$(head -c 5 /dev/urandom | base32)
-  #         IMG=$YSYX_HOME/am-kernels/benchmarks/microbench/build/microbench-riscv32e-npc.bin
-  #         python $AM_HOME/tools/insert-arg.py $IMG 64 the_insert-arg_rule_in_Makefile_will_insert_mainargs_here $KEY
-  #         python $MONITOR_PY --good=$KEY make -C $NPC_HOME sim-iverilog IMG=$IMG
+      - name: run microbench with iverilog
+        run: |
+          make -C $NPC_HOME clean
+          KEY=$(head -c 5 /dev/urandom | base32)
+          IMG=$YSYX_HOME/am-kernels/benchmarks/microbench/build/microbench-riscv32e-npc.bin
+          python $AM_HOME/tools/insert-arg.py $IMG 64 the_insert-arg_rule_in_Makefile_will_insert_mainargs_here $KEY
+          python $MONITOR_PY --good=$KEY make -C $NPC_HOME sim-iverilog IMG=$IMG
 
   # yosys-sta:
   #   needs: [parse, setup]
