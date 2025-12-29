@@ -1,6 +1,7 @@
 # ysyx-d-stage-ci
 
 工程目录结构说明
+```python
 ysyx-workbench
 ├── abstract-machine
 ├── nemu
@@ -10,8 +11,10 @@ ysyx-workbench
 ├── Makefile
 └── patch
     └── ysyxSoC
+```
 注意：ysyx-workbench 可以更换名称，但 CI 流程会统一重命名为该名称
 重要说明
+
 目录名称规则
 
     abstract-machine、nemu 和 npc 不得更换名称
