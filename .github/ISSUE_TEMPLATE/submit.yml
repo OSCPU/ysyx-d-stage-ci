@@ -1,5 +1,5 @@
-name: B阶段考核提交表单
-description: 申请B阶段考核
+name: D阶段考核提交表单
+description: 申请D阶段考核
 body:
   - type: input
     id: stuid
