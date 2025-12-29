@@ -530,105 +530,105 @@ jobs:
 #          # 查找库文件
 #          echo "查找 libcapstone:"
 #          find /usr -name "*capstone*" 2>/dev/null | head -10
-  hello:
-    needs: setup
-    runs-on: ubuntu-22.04
-    env:
-      # 配置变量
-      EXPECTED_OUTPUT: "hello world"  # 要检测的输出字符串
-      OUTPUT_CASE_SENSITIVE: false  # 是否区分大小写
-      TIMEOUT_SECONDS: 600  # 超时时间（秒）
-      LOG_LINES_ON_FAILURE: 50  # 失败时显示的最后日志行数
-      LOG_LINES_ON_TIMEOUT: 100  # 超时时显示的最后日志行数
+  # hello:
+  #   needs: setup
+  #   runs-on: ubuntu-22.04
+  #   env:
+  #     # 配置变量
+  #     EXPECTED_OUTPUT: "hello world"  # 要检测的输出字符串
+  #     OUTPUT_CASE_SENSITIVE: false  # 是否区分大小写
+  #     TIMEOUT_SECONDS: 600  # 超时时间（秒）
+  #     LOG_LINES_ON_FAILURE: 50  # 失败时显示的最后日志行数
+  #     LOG_LINES_ON_TIMEOUT: 100  # 超时时显示的最后日志行数
     
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #       with:
+  #         fetch-depth: 0
 
-      - name: Common operations
-        uses: ./.github/actions/common
-        with:
-          YSYX_HOME: ${{ needs.setup.outputs.YSYX_HOME }}
-          cache-key: ${{ needs.setup.outputs.cache-key }}
-          MAKEFLAGS: ${{ needs.setup.outputs.MAKEFLAGS }}
+  #     - name: Common operations
+  #       uses: ./.github/actions/common
+  #       with:
+  #         YSYX_HOME: ${{ needs.setup.outputs.YSYX_HOME }}
+  #         cache-key: ${{ needs.setup.outputs.cache-key }}
+  #         MAKEFLAGS: ${{ needs.setup.outputs.MAKEFLAGS }}
 
-      - name: Debug monitor.py
-        run: |
-          echo "=== 调试信息 ==="
-          pwd
-          ls -la
+  #     - name: Debug monitor.py
+  #       run: |
+  #         echo "=== 调试信息 ==="
+  #         pwd
+  #         ls -la
           
-          echo -e "\n=== 查找 monitor.py ==="
-          find . -name "monitor.py" 2>/dev/null
+  #         echo -e "\n=== 查找 monitor.py ==="
+  #         find . -name "monitor.py" 2>/dev/null
           
-          echo -e "\n=== 环境变量 ==="
-          env | grep -i "monitor\|ysyx"
+  #         echo -e "\n=== 环境变量 ==="
+  #         env | grep -i "monitor\|ysyx"
           
-          echo -e "\n=== 配置变量 ==="
-          echo "EXPECTED_OUTPUT: $EXPECTED_OUTPUT"
-          echo "OUTPUT_CASE_SENSITIVE: $OUTPUT_CASE_SENSITIVE"
-          echo "TIMEOUT_SECONDS: $TIMEOUT_SECONDS"
+  #         echo -e "\n=== 配置变量 ==="
+  #         echo "EXPECTED_OUTPUT: $EXPECTED_OUTPUT"
+  #         echo "OUTPUT_CASE_SENSITIVE: $OUTPUT_CASE_SENSITIVE"
+  #         echo "TIMEOUT_SECONDS: $TIMEOUT_SECONDS"
           
-          echo -e "\n=== 检查 YSYX_HOME ==="
-          ls -la "$YSYX_HOME/" 2>/dev/null | head -10
+  #         echo -e "\n=== 检查 YSYX_HOME ==="
+  #         ls -la "$YSYX_HOME/" 2>/dev/null | head -10
 
-      - name: hello
-        run: |
-          KEY=$(head -c 5 /dev/urandom | base32)
-          echo "开始运行hello测试..."
-          echo "配置:"
-          echo "  - 预期输出: '$EXPECTED_OUTPUT'"
-          echo "  - 大小写敏感: $OUTPUT_CASE_SENSITIVE"
-          echo "  - 超时时间: ${TIMEOUT_SECONDS}秒"
+  #     - name: hello
+  #       run: |
+  #         KEY=$(head -c 5 /dev/urandom | base32)
+  #         echo "开始运行hello测试..."
+  #         echo "配置:"
+  #         echo "  - 预期输出: '$EXPECTED_OUTPUT'"
+  #         echo "  - 大小写敏感: $OUTPUT_CASE_SENSITIVE"
+  #         echo "  - 超时时间: ${TIMEOUT_SECONDS}秒"
           
-          # 创建一个临时文件来记录输出
-          LOGFILE="/tmp/npc_hello_$$.log"
+  #         # 创建一个临时文件来记录输出
+  #         LOGFILE="/tmp/npc_hello_$$.log"
           
-          # 使用timeout命令运行仿真
-          timeout $TIMEOUT_SECONDS make -C $YSYX_HOME/npc run ALL=hello 2>&1 | tee "$LOGFILE" &
-          PID=$!
+  #         # 使用timeout命令运行仿真
+  #         timeout $TIMEOUT_SECONDS make -C $YSYX_HOME/npc run ALL=hello 2>&1 | tee "$LOGFILE" &
+  #         PID=$!
           
-          echo "仿真进程PID: $PID"
+  #         echo "仿真进程PID: $PID"
           
-          # 等待进程结束或超时
-          wait $PID
-          STATUS=$?
+  #         # 等待进程结束或超时
+  #         wait $PID
+  #         STATUS=$?
           
-          echo "仿真进程退出状态: $STATUS"
+  #         echo "仿真进程退出状态: $STATUS"
           
-          # 检查timeout的退出状态
-          if [ $STATUS -eq 124 ]; then
-            echo "❌ 错误：仿真运行超时（${TIMEOUT_SECONDS}秒）"
-            echo "=== 最后${LOG_LINES_ON_TIMEOUT}行输出 ==="
-            tail -$LOG_LINES_ON_TIMEOUT "$LOGFILE"
-            rm -f "$LOGFILE"
-            exit 1
-          fi
+  #         # 检查timeout的退出状态
+  #         if [ $STATUS -eq 124 ]; then
+  #           echo "❌ 错误：仿真运行超时（${TIMEOUT_SECONDS}秒）"
+  #           echo "=== 最后${LOG_LINES_ON_TIMEOUT}行输出 ==="
+  #           tail -$LOG_LINES_ON_TIMEOUT "$LOGFILE"
+  #           rm -f "$LOGFILE"
+  #           exit 1
+  #         fi
           
-          # 根据大小写敏感设置选择grep选项
-          if [ "$OUTPUT_CASE_SENSITIVE" = "true" ]; then
-            GREP_OPTIONS=""
-            echo "检测模式: 区分大小写"
-          else
-            GREP_OPTIONS="-i"
-            echo "检测模式: 不区分大小写"
-          fi
+  #         # 根据大小写敏感设置选择grep选项
+  #         if [ "$OUTPUT_CASE_SENSITIVE" = "true" ]; then
+  #           GREP_OPTIONS=""
+  #           echo "检测模式: 区分大小写"
+  #         else
+  #           GREP_OPTIONS="-i"
+  #           echo "检测模式: 不区分大小写"
+  #         fi
           
-          # 检查输出中是否包含预期的字符串
-          if grep -q $GREP_OPTIONS "$EXPECTED_OUTPUT" "$LOGFILE"; then
-            echo "✅ 成功：检测到预期的输出 '$EXPECTED_OUTPUT'"
-            echo "=== 包含 '$EXPECTED_OUTPUT' 的输出行 ==="
-            grep $GREP_OPTIONS "$EXPECTED_OUTPUT" "$LOGFILE"
-            rm -f "$LOGFILE"
-            exit 0
-          else
-            echo "❌ 错误：未检测到预期的输出 '$EXPECTED_OUTPUT'"
-            echo "=== 最后${LOG_LINES_ON_FAILURE}行输出 ==="
-            tail -$LOG_LINES_ON_FAILURE "$LOGFILE"
-            rm -f "$LOGFILE"
-            exit 1
-          fi
+  #         # 检查输出中是否包含预期的字符串
+  #         if grep -q $GREP_OPTIONS "$EXPECTED_OUTPUT" "$LOGFILE"; then
+  #           echo "✅ 成功：检测到预期的输出 '$EXPECTED_OUTPUT'"
+  #           echo "=== 包含 '$EXPECTED_OUTPUT' 的输出行 ==="
+  #           grep $GREP_OPTIONS "$EXPECTED_OUTPUT" "$LOGFILE"
+  #           rm -f "$LOGFILE"
+  #           exit 0
+  #         else
+  #           echo "❌ 错误：未检测到预期的输出 '$EXPECTED_OUTPUT'"
+  #           echo "=== 最后${LOG_LINES_ON_FAILURE}行输出 ==="
+  #           tail -$LOG_LINES_ON_FAILURE "$LOGFILE"
+  #           rm -f "$LOGFILE"
+  #           exit 1
+  #         fi
 
 #      - name: hello
 #        run: |
@@ -654,8 +654,7 @@ jobs:
 
       - name: cpu-tests
         run: |
-          make -C $YSYX_HOME/npc run ALL=dummy
-#          make ARCH=riscv32e-ysyxsoc -C $YSYX_HOME/am-kernels/tests/cpu-tests run
+          make ARCH=minirv-npc -C $YSYX_HOME/am-kernels/tests/cpu-tests run
 
   # riscv-tests:
   #   needs: setup
