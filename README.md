@@ -1,5 +1,6 @@
 # ysyx-d-stage-ci
-目录结构:
+
+工程目录结构说明
 ysyx-workbench
 ├── abstract-machine
 ├── nemu
@@ -9,16 +10,42 @@ ysyx-workbench
 ├── Makefile
 └── patch
     └── ysyxSoC
+注意：ysyx-workbench 可以更换名称，但 CI 流程会统一重命名为该名称
+重要说明
+目录名称规则
 
-ysyx-workbench可以更换名称, CI流程从远程仓库拉取你的代码时, 会自动将工程目录统一更名为ysyx-workbench. 因此, 我们对远程仓库的名称不作要求.
-abstract-machine, nemu和npc不得更换名称.
-Makefile不得更换名称, 其中STUID和STUNAME需要正确设置.
+    abstract-machine、nemu 和 npc 不得更换名称
+    Makefile 不得更换名称
 
-CI流程对make目标有如下约定:
-    npc下面要有ysyx_xxxxxxxx.v文件, 其中的xxxxxxxx为你的学号.顶层模块名为ysyx_xxxxxxxx
-    在npc/Makefile中, 文件路径的指定需要相对于环境变量$YSYX_HOME, 该环境变量指向ysyx-workbench目录.
-    Makefile要实现在$YSYX_HOME/npc/下make run ALL=hello能运行hello并输出.make run ALL=dummy能构建并运行dummy.
+文件要求
 
-CI流程需要关闭DiffTest.关闭波形和调试功能.(特别是disasm.cpp关于反汇编的部分以及Makefile里相应的编译和链接选项)
+    npc目录下必须有 ysyx_xxxxxxxx.v 文件（xxxxxxxx为你的学号）
+    顶层模块名必须为 ysyx_xxxxxxxx
+    主Makefile中必须正确设置 STUID 和 STUNAME
 
-整理好之后在github上创建一个新的远程仓库将代码上传,然后点开issue,右上角有一个绿色的New issue,点开选择D阶段考核提交表单,要在标题或者注释填写提交人,Create之后点Actions查看对应的进度
+Makefile规范
+
+    文件路径需相对于环境变量 $YSYX_HOME（指向 ysyx-workbench 目录）
+    必须实现以下功能：
+        make run ALL=hello # 能运行hello并输出 
+        make run ALL=dummy # 能构建并运行dummy
+
+CI流程要求
+特别注意：
+
+    关闭 DiffTest
+    关闭波形和调试功能
+    disasm.cpp 中关于反汇编的部分必须关闭
+    Makefile 中关于反汇编的编译和链接选项需要调整
+
+提交步骤
+
+    在 GitHub 上创建新的远程仓库
+    将代码上传到仓库
+    在 https://github.com/OSCPU/ysyx-d-stage-ci 仓库中点击 issue 页面
+    点击右上角的 New issue
+    选择 "D阶段考核提交表单"
+    在标题或注释中填写提交人信息
+    创建 issue 后，点击 Actions 查看 CI 进度
+
+
