@@ -537,7 +537,7 @@ jobs:
       # 配置变量
       EXPECTED_OUTPUT: "hello world"  # 要检测的输出字符串
       OUTPUT_CASE_SENSITIVE: false  # 是否区分大小写
-      TIMEOUT_SECONDS: 1800  # 超时时间（秒）
+      TIMEOUT_SECONDS: 600  # 超时时间（秒）
       LOG_LINES_ON_FAILURE: 50  # 失败时显示的最后日志行数
       LOG_LINES_ON_TIMEOUT: 100  # 超时时显示的最后日志行数
     
