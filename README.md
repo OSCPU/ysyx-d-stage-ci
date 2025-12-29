@@ -28,10 +28,35 @@ ysyx-workbench
 
 Makefile规范
 
-    文件路径需相对于环境变量 $YSYX_HOME（指向 ysyx-workbench 目录）
-    必须实现以下功能：
-        make run ALL=hello # 能运行hello并输出 
-        make run ALL=dummy # 能构建并运行dummy
+    npc/Makefile文件路径需相对于环境变量 $YSYX_HOME（指向 ysyx-workbench 目录）
+    将ysyx-workbench/abstract-machine/scripts/platform/npc.mk的image目标改成以下内容
+```Makefile
+# image: image-dep
+# 	@$(OBJDUMP) -d $(IMAGE).elf > $(IMAGE).txt
+# 	@echo + OBJCOPY "->" $(IMAGE_REL).bin
+# 	@$(OBJCOPY) -S --set-section-flags .bss=alloc,contents -O binary $(IMAGE).elf $(IMAGE).bin
+# 偏移量换算成 10 进制，dd 只认 10 进制
+
+ELF_OFFSET := 370432
+
+# 源模板文件（对应你 gen.sh 里的 HELLO_BIN）
+HELLO_TEMPLATE := $(YSYX_HOME)/ysyxSoC/ready-to-run/D-stage/hello-minirv-ysyxsoc.bin
+
+# 最终要生成的 bin
+IMAGE_BIN := $(IMAGE).bin
+
+# 真正的依赖：elf 文件变了就要重新 patch
+$(IMAGE_BIN): $(IMAGE).elf $(HELLO_TEMPLATE)
+	@echo "  PATCH  $@"
+	@cp $(HELLO_TEMPLATE) $@.tmp
+	@dd if=$< of=$@.tmp bs=1 seek=$(ELF_OFFSET) conv=notrunc 2>/dev/null
+	@mv $@.tmp $@
+
+# 如果你还想保留反汇编，可以保留原来的 image 目标
+image: $(IMAGE_BIN)
+	@$(OBJDUMP) -d $(IMAGE).elf > $(IMAGE).txt
+``` 
+    改完后需要可以在ysyx-workbench/am-kernels下面运行各种测试
 
 CI流程要求
 特别注意：
@@ -51,4 +76,7 @@ CI流程要求
     在标题或注释中填写提交人信息
     创建 issue 后，点击 Actions 查看 CI 进度
 
+
+已完成
+    
 
