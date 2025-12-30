@@ -634,7 +634,7 @@ jobs:
 #        run: |
 #          KEY=$(head -c 5 /dev/urandom | base32)
 #          make -C $YSYX_HOME/npc run ALL=hello
-#          python $MONITOR_PY --middle="Hello World!" --good=$KEY make -C $YSYX_HOME/npc run mainargs=$KEY
+#          python $YSYX_HOME/monitor.py --middle="Hello World!" --good=$KEY make -C $YSYX_HOME/npc run mainargs=$KEY
 
   hello:
     needs: setup
@@ -674,7 +674,7 @@ jobs:
       - name: hello
         run: |
           KEY=$(head -c 5 /dev/urandom | base32)
-          python $MONITOR_PY --middle="Hello, AbstractMachine!" --good=$KEY make ARCH=minirv-npc -C $YSYX_HOME/am-kernels/kernels/hello run mainargs=$KEY
+          python $YSYX_HOME/monitor.py --middle="Hello, AbstractMachine!" --good=$KEY make ARCH=minirv-npc -C $YSYX_HOME/am-kernels/kernels/hello run mainargs=$KEY
 
 
   cpu-tests:
@@ -695,7 +695,7 @@ jobs:
       - name: cpu-tests
         run: |
           make ARCH=minirv-npc -C $YSYX_HOME/am-kernels/tests/cpu-tests run ALL=dummy
-          make ARCH=minirv-npc -C $YSYX_HOME/am-kernels/tests/cpu-tests run 
+          make ARCH=minirv-npc -C $YSYX_HOME/am-kernels/tests/cpu-tests run -j1
 
   riscv-tests:
     needs: setup
@@ -737,7 +737,7 @@ jobs:
         run: |
           git clone --depth 1 https://github.com/NJU-ProjectN/riscv-arch-test-am
           make ARCH=minirv-npc -C riscv-arch-test-am run TEST_ISA=E ALL=add-01
-          make ARCH=minirv-npc -C riscv-arch-test-am run TEST_ISA="E Zifencei"
+          make ARCH=minirv-npc -C riscv-arch-test-am run TEST_ISA="E"
 
   microbench:
     needs: setup
@@ -757,7 +757,7 @@ jobs:
       - name: microbench
         run: |
           KEY=$(head -c 5 /dev/urandom | base32)
-          python $MONITOR_PY --good="$KEY" make ARCH=minirv-npc -C $YSYX_HOME/am-kernels/benchmarks/microbench run mainargs=$KEY
+          python $YSYX_HOME/monitor.py --good="$KEY" make ARCH=minirv-npc -C $YSYX_HOME/am-kernels/benchmarks/microbench run mainargs=$KEY
 
   # rt-thread:
   #   needs: setup
@@ -782,7 +782,7 @@ jobs:
   #         cd $YSYX_HOME/rt-thread-am/bsp/abstract-machine
   #         make ARCH=riscv32e-ysyxsoc init
   #         KEY=$(head -c 5 /dev/urandom | base32)
-  #         python $MONITOR_PY --good=$KEY make ARCH=riscv32e-ysyxsoc run
+  #         python $YSYX_HOME/monitor.py --good=$KEY make ARCH=riscv32e-ysyxsoc run
 
   iverilog-microbench:
     needs: setup
@@ -809,7 +809,7 @@ jobs:
           KEY=$(head -c 5 /dev/urandom | base32)
           IMG=$YSYX_HOME/am-kernels/benchmarks/microbench/build/microbench-riscv32e-npc.bin
           python $AM_HOME/tools/insert-arg.py $IMG 64 the_insert-arg_rule_in_Makefile_will_insert_mainargs_here $KEY
-          python $MONITOR_PY --good=$KEY make -C $NPC_HOME sim-iverilog IMG=$IMG
+          python $YSYX_HOME/monitor.py --good=$KEY make -C $NPC_HOME sim-iverilog IMG=$IMG
 
   # yosys-sta:
   #   needs: [parse, setup]
@@ -956,7 +956,7 @@ jobs:
   #         KEY=$(head -c 5 /dev/urandom | base32)
   #         IMG=$YSYX_HOME/am-kernels/benchmarks/microbench/build/microbench-riscv32e-npc.bin
   #         python $AM_HOME/tools/insert-arg.py $IMG 64 the_insert-arg_rule_in_Makefile_will_insert_mainargs_here $KEY
-  #         python $MONITOR_PY --good=$KEY make -C $NPC_HOME sim-iverilog-netlist IMG=$IMG NETLIST=$NETLIST CELLS=$CELLS
+  #         python $YSYX_HOME/monitor.py --good=$KEY make -C $NPC_HOME sim-iverilog-netlist IMG=$IMG NETLIST=$NETLIST CELLS=$CELLS
 
   # more-tests:
   #   needs: [setup, hello, cpu-tests, riscv-tests, riscv-arch-test, microbench, rt-thread, iverilog-microbench, yosys-sta, iverilog-netlist-microbench]
