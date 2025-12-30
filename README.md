@@ -96,6 +96,7 @@ CI流程要求
 已完成
 
     hello
+    time
     cpu-tests
     riscv-tests
     microbench
@@ -106,4 +107,4 @@ CI流程要求
     iverilog-microbench
     iverilog-netlist-microbench
     yosys-sta
-    
+
