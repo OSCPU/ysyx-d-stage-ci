@@ -13,10 +13,12 @@ ysyx-workbench
     └── ysyxSoC
 ```
 注意：ysyx-workbench 可以更换名称，但 CI 流程会统一重命名为该名称
+大概运行45min左右
 重要说明
 
 目录名称规则
 
+    请勿用工作分支进行测试,强烈建议新开一个测试分支进行测试
     abstract-machine、nemu 和 npc 不得更换名称
     Makefile 不得更换名称
 
@@ -62,7 +64,7 @@ CI流程要求
 
     关闭 DiffTest
     关闭波形和调试功能
-    disasm.cpp 中关于反汇编的部分必须关闭
+    关于反汇编的部分必须关闭
     Makefile 中关于反汇编的编译和链接选项需要调整
 
 本地测试内容:
