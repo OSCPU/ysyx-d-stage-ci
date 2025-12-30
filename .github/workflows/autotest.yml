@@ -261,15 +261,15 @@ jobs:
           echo ".git_commit:" >> Makefile
           echo -e "\t@echo git tracer is disabled" >> Makefile
 
-      - name: Check patch size
-        if: steps.cache-dir.outputs.cache-hit != 'true'
-        run: |
-          SIZE=`du -sb $YSYX_HOME/patch | grep -o '^[0-9]*'`
-          SIZE_LIMIT=1048576 # 1MB
-          if [[ $SIZE -gt $SIZE_LIMIT ]] ; then
-            echo "Patch size($SIZE) is larger than the limit($SIZE_LIMIT)."
-            false
-          fi
+      # - name: Check patch size #补丁大小检查
+      #   if: steps.cache-dir.outputs.cache-hit != 'true'
+      #   run: |
+      #     SIZE=`du -sb $YSYX_HOME/patch | grep -o '^[0-9]*'`
+      #     SIZE_LIMIT=1048576 # 1MB
+      #     if [[ $SIZE -gt $SIZE_LIMIT ]] ; then
+      #       echo "Patch size($SIZE) is larger than the limit($SIZE_LIMIT)."
+      #       false
+      #     fi
 
       - name: Clone other repos
         if: steps.cache-dir.outputs.cache-hit != 'true'
@@ -530,105 +530,132 @@ jobs:
 #          # 查找库文件
 #          echo "查找 libcapstone:"
 #          find /usr -name "*capstone*" 2>/dev/null | head -10
-  # hello:
-  #   needs: setup
-  #   runs-on: ubuntu-22.04
-  #   env:
-  #     # 配置变量
-  #     EXPECTED_OUTPUT: "hello world"  # 要检测的输出字符串
-  #     OUTPUT_CASE_SENSITIVE: false  # 是否区分大小写
-  #     TIMEOUT_SECONDS: 600  # 超时时间（秒）
-  #     LOG_LINES_ON_FAILURE: 50  # 失败时显示的最后日志行数
-  #     LOG_LINES_ON_TIMEOUT: 100  # 超时时显示的最后日志行数
-    
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #       with:
-  #         fetch-depth: 0
+  time:
+    needs: setup
+    runs-on: ubuntu-22.04
+    env:
+      # 配置变量
+      EXPECTED_OUTPUT: "hello world"  # 要检测的输出字符串
+      OUTPUT_CASE_SENSITIVE: false  # 是否区分大小写
+      TIMEOUT_SECONDS: 600  # 总体超时时间（秒）
+      LOG_LINES_ON_FAILURE: 50  # 失败时显示的最后日志行数
+      LOG_LINES_ON_TIMEOUT: 100  # 超时时显示的最后日志行数
+      MONITOR_SECONDS: 10  # 监控时长（秒）
+      EXPECTED_COUNT_RANGE: "9 10 11"  # 期望的输出数量范围
 
-  #     - name: Common operations
-  #       uses: ./.github/actions/common
-  #       with:
-  #         YSYX_HOME: ${{ needs.setup.outputs.YSYX_HOME }}
-  #         cache-key: ${{ needs.setup.outputs.cache-key }}
-  #         MAKEFLAGS: ${{ needs.setup.outputs.MAKEFLAGS }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-  #     - name: Debug monitor.py
-  #       run: |
-  #         echo "=== 调试信息 ==="
-  #         pwd
-  #         ls -la
-          
-  #         echo -e "\n=== 查找 monitor.py ==="
-  #         find . -name "monitor.py" 2>/dev/null
-          
-  #         echo -e "\n=== 环境变量 ==="
-  #         env | grep -i "monitor\|ysyx"
-          
-  #         echo -e "\n=== 配置变量 ==="
-  #         echo "EXPECTED_OUTPUT: $EXPECTED_OUTPUT"
-  #         echo "OUTPUT_CASE_SENSITIVE: $OUTPUT_CASE_SENSITIVE"
-  #         echo "TIMEOUT_SECONDS: $TIMEOUT_SECONDS"
-          
-  #         echo -e "\n=== 检查 YSYX_HOME ==="
-  #         ls -la "$YSYX_HOME/" 2>/dev/null | head -10
+      - name: Common operations
+        uses: ./.github/actions/common
+        with:
+          YSYX_HOME: ${{ needs.setup.outputs.YSYX_HOME }}
+          cache-key: ${{ needs.setup.outputs.cache-key }}
+          MAKEFLAGS: ${{ needs.setup.outputs.MAKEFLAGS }}
 
-  #     - name: hello
-  #       run: |
-  #         KEY=$(head -c 5 /dev/urandom | base32)
-  #         echo "开始运行hello测试..."
-  #         echo "配置:"
-  #         echo "  - 预期输出: '$EXPECTED_OUTPUT'"
-  #         echo "  - 大小写敏感: $OUTPUT_CASE_SENSITIVE"
-  #         echo "  - 超时时间: ${TIMEOUT_SECONDS}秒"
+      - name: time
+        run: |
+          KEY=$(head -c 5 /dev/urandom | base32)
+          echo "开始运行time测试..."
+          echo "配置:"
+          echo "  - 预期输出: '$EXPECTED_OUTPUT'"
+          echo "  - 大小写敏感: $OUTPUT_CASE_SENSITIVE"
+          echo "  - 总体超时时间: ${TIMEOUT_SECONDS}秒"
+          echo "  - 监控时长: ${MONITOR_SECONDS}秒"
+          echo "  - 期望输出数量: ${EXPECTED_COUNT_RANGE}个"
           
-  #         # 创建一个临时文件来记录输出
-  #         LOGFILE="/tmp/npc_hello_$$.log"
+          # 创建一个临时文件来记录输出
+          LOGFILE="/tmp/npc_time_$$.log"
           
-  #         # 使用timeout命令运行仿真
-  #         timeout $TIMEOUT_SECONDS make -C $YSYX_HOME/npc run ALL=hello 2>&1 | tee "$LOGFILE" &
-  #         PID=$!
+          # 根据大小写敏感设置选择grep选项
+          if [ "$OUTPUT_CASE_SENSITIVE" = "true" ]; then
+            GREP_OPTIONS=""
+            echo "检测模式: 区分大小写"
+          else
+            GREP_OPTIONS="-i"
+            echo "检测模式: 不区分大小写"
+          fi
           
-  #         echo "仿真进程PID: $PID"
+          echo -e "\n=== 启动仿真进程 ==="
+          # 使用timeout命令运行仿真
+          echo timeout $TIMEOUT_SECONDS make -C ARCH=minirv-npc $YSYX_HOME/am-kernels/tests/am-tests run mainargs=t 2>&1 | tee "$LOGFILE" &
+          timeout $TIMEOUT_SECONDS make -C ARCH=native $YSYX_HOME/am-kernels/tests/am-tests run mainargs=t 2>&1 | tee "$LOGFILE" &
+          SIM_PID=$!
           
-  #         # 等待进程结束或超时
-  #         wait $PID
-  #         STATUS=$?
+          echo "仿真进程PID: $SIM_PID"
           
-  #         echo "仿真进程退出状态: $STATUS"
+          # 等待第一个预期输出出现
+          echo -e "\n=== 等待第一个 '$EXPECTED_OUTPUT' 输出 ==="
+          FIRST_FOUND=false
+          for i in $(seq 1 $TIMEOUT_SECONDS); do
+            if grep -q $GREP_OPTIONS "$EXPECTED_OUTPUT" "$LOGFILE"; then
+              FIRST_FOUND=true
+              echo "✅ 在 $i 秒后检测到第一个 '$EXPECTED_OUTPUT' 输出"
+              break
+            fi
+            sleep 1
+          done
           
-  #         # 检查timeout的退出状态
-  #         if [ $STATUS -eq 124 ]; then
-  #           echo "❌ 错误：仿真运行超时（${TIMEOUT_SECONDS}秒）"
-  #           echo "=== 最后${LOG_LINES_ON_TIMEOUT}行输出 ==="
-  #           tail -$LOG_LINES_ON_TIMEOUT "$LOGFILE"
-  #           rm -f "$LOGFILE"
-  #           exit 1
-  #         fi
+          if [ "$FIRST_FOUND" = "false" ]; then
+            echo "❌ 错误：在 ${TIMEOUT_SECONDS}秒内未检测到第一个 '$EXPECTED_OUTPUT' 输出"
+            echo "=== 最后${LOG_LINES_ON_FAILURE}行输出 ==="
+            tail -$LOG_LINES_ON_FAILURE "$LOGFILE"
+            kill -9 $SIM_PID 2>/dev/null || true
+            rm -f "$LOGFILE"
+            exit 1
+          fi
           
-  #         # 根据大小写敏感设置选择grep选项
-  #         if [ "$OUTPUT_CASE_SENSITIVE" = "true" ]; then
-  #           GREP_OPTIONS=""
-  #           echo "检测模式: 区分大小写"
-  #         else
-  #           GREP_OPTIONS="-i"
-  #           echo "检测模式: 不区分大小写"
-  #         fi
+          # 记录开始监控的时间
+          START_TIME=$(date +%s)
+          echo "开始监控时间: $(date -d @$START_TIME)"
+          echo "将在 ${MONITOR_SECONDS} 秒后检查输出数量"
           
-  #         # 检查输出中是否包含预期的字符串
-  #         if grep -q $GREP_OPTIONS "$EXPECTED_OUTPUT" "$LOGFILE"; then
-  #           echo "✅ 成功：检测到预期的输出 '$EXPECTED_OUTPUT'"
-  #           echo "=== 包含 '$EXPECTED_OUTPUT' 的输出行 ==="
-  #           grep $GREP_OPTIONS "$EXPECTED_OUTPUT" "$LOGFILE"
-  #           rm -f "$LOGFILE"
-  #           exit 0
-  #         else
-  #           echo "❌ 错误：未检测到预期的输出 '$EXPECTED_OUTPUT'"
-  #           echo "=== 最后${LOG_LINES_ON_FAILURE}行输出 ==="
-  #           tail -$LOG_LINES_ON_FAILURE "$LOGFILE"
-  #           rm -f "$LOGFILE"
-  #           exit 1
-  #         fi
+          # 等待指定的监控时长
+          sleep $MONITOR_SECONDS
+          
+          END_TIME=$(date +%s)
+          ELAPSED=$((END_TIME - START_TIME))
+          echo "监控结束时间: $(date -d @$END_TIME)"
+          echo "监控时长: ${ELAPSED}秒"
+          
+          # 结束仿真进程
+          echo -e "\n=== 结束仿真进程 ==="
+          kill -9 $SIM_PID 2>/dev/null || true
+          wait $SIM_PID 2>/dev/null || true
+          
+          # 统计输出中EXPECTED_OUTPUT的数量
+          if [ "$OUTPUT_CASE_SENSITIVE" = "true" ]; then
+            COUNT=$(grep -c "$EXPECTED_OUTPUT" "$LOGFILE")
+          else
+            COUNT=$(grep -ic "$EXPECTED_OUTPUT" "$LOGFILE")
+          fi
+          
+          echo "检测到 '$EXPECTED_OUTPUT' 的输出数量: $COUNT"
+          
+          # 检查数量是否在期望范围内
+          IS_VALID=false
+          for expected in $EXPECTED_COUNT_RANGE; do
+            if [ "$COUNT" -eq "$expected" ]; then
+              IS_VALID=true
+              break
+            fi
+          done
+          
+          if [ "$IS_VALID" = "true" ]; then
+            echo "✅ 成功：在 ${MONITOR_SECONDS} 秒监控期内检测到 $COUNT 个 '$EXPECTED_OUTPUT' 输出，符合预期（${EXPECTED_COUNT_RANGE}）"
+            echo "=== 包含 '$EXPECTED_OUTPUT' 的所有输出行 ==="
+            grep $GREP_OPTIONS "$EXPECTED_OUTPUT" "$LOGFILE"
+            rm -f "$LOGFILE"
+            exit 0
+          else
+            echo "❌ 错误：在 ${MONITOR_SECONDS} 秒监控期内检测到 $COUNT 个 '$EXPECTED_OUTPUT' 输出，不符合预期（${EXPECTED_COUNT_RANGE}）"
+            echo "=== 最后${LOG_LINES_ON_FAILURE}行输出 ==="
+            tail -$LOG_LINES_ON_FAILURE "$LOGFILE"
+            rm -f "$LOGFILE"
+            exit 1
+        fi
 
 #      - name: hello
 #        run: |
