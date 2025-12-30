@@ -13,8 +13,10 @@ ysyx-workbench
     └── ysyxSoC
 ```
 注意：ysyx-workbench 可以更换名称，但 CI 流程会统一重命名为该名称
-大概运行45min左右
-重要说明
+
+    大概运行45min左右
+
+**重要说明**
 
 目录名称规则
 
@@ -92,6 +94,14 @@ CI流程要求
 
 
 已完成
-    
-待完成
 
+    hello
+    cpu-tests
+    riscv-tests
+    microbench
+
+待完成
+    riscv-arch-test
+    iverilog-microbench
+    iverilog-netlist-microbench
+    yosys-sta

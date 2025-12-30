@@ -715,8 +715,8 @@ jobs:
       - name: riscv-tests
         run: |
           git clone --depth 1 https://github.com/NJU-ProjectN/riscv-tests-am
-          make ARCH=minirv-npc -C riscv-tests-am run TEST_ISA=i ALL=auipc
           make ARCH=minirv-npc -C riscv-tests-am run TEST_ISA=i -j1
+#make ARCH=minirv-npc -C riscv-tests-am run TEST_ISA=i ALL=auipc
 
   riscv-arch-test:
     needs: setup
