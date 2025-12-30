@@ -537,7 +537,7 @@ jobs:
       # 配置变量
       EXPECTED_OUTPUT: "GMT"  # 要检测的输出字符串
       OUTPUT_CASE_SENSITIVE: true  # 是否区分大小写
-      TIMEOUT_SECONDS: 600  # 总体超时时间（秒）
+      TIMEOUT_SECONDS: 60  # 总体超时时间（秒）
       LOG_LINES_ON_FAILURE: 50  # 失败时显示的最后日志行数
       LOG_LINES_ON_TIMEOUT: 100  # 超时时显示的最后日志行数
       MONITOR_SECONDS: 10  # 监控时长（秒）
@@ -580,8 +580,8 @@ jobs:
           
           echo -e "\n=== 启动仿真进程 ==="
           # 使用timeout命令运行仿真
-          echo txt:timeout $TIMEOUT_SECONDS make ARCH=minirv-npc -C $YSYX_HOME/am-kernels/tests/am-tests run mainargs=t 2>&1 | tee "$LOGFILE" &
-          timeout $TIMEOUT_SECONDS make ARCH=native -C $YSYX_HOME/am-kernels/tests/am-tests run mainargs=t 2>&1 | tee "$LOGFILE" &
+          timeout $TIMEOUT_SECONDS make ARCH=minirv-npc -C $YSYX_HOME/am-kernels/tests/am-tests run mainargs=t 2>&1 | tee "$LOGFILE" &
+          echo txt:timeout $TIMEOUT_SECONDS make ARCH=native -C $YSYX_HOME/am-kernels/tests/am-tests run mainargs=t 2>&1 | tee "$LOGFILE" &
           SIM_PID=$!
           
           echo "仿真进程PID: $SIM_PID"
