@@ -694,8 +694,8 @@ jobs:
 
       - name: cpu-tests
         run: |
-#          make ARCH=minirv-npc -C $YSYX_HOME/am-kernels/tests/cpu-tests run ALL=dummy
           make ARCH=minirv-npc -C $YSYX_HOME/am-kernels/tests/cpu-tests run -j1
+# make ARCH=minirv-npc -C $YSYX_HOME/am-kernels/tests/cpu-tests run ALL=dummy
 
   riscv-tests:
     needs: setup
