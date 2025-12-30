@@ -580,8 +580,8 @@ jobs:
           
           echo -e "\n=== 启动仿真进程 ==="
           # 使用timeout命令运行仿真
-          echo timeout $TIMEOUT_SECONDS make -C ARCH=minirv-npc $YSYX_HOME/am-kernels/tests/am-tests run mainargs=t 2>&1 | tee "$LOGFILE" &
-          timeout $TIMEOUT_SECONDS make -C ARCH=native $YSYX_HOME/am-kernels/tests/am-tests run mainargs=t 2>&1 | tee "$LOGFILE" &
+          echo txt:timeout $TIMEOUT_SECONDS make ARCH=minirv-npc -C $YSYX_HOME/am-kernels/tests/am-tests run mainargs=t 2>&1 | tee "$LOGFILE" &
+          timeout $TIMEOUT_SECONDS make ARCH=native -C $YSYX_HOME/am-kernels/tests/am-tests run mainargs=t 2>&1 | tee "$LOGFILE" &
           SIM_PID=$!
           
           echo "仿真进程PID: $SIM_PID"
