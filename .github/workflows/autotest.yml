@@ -701,7 +701,7 @@ jobs:
       - name: hello
         run: |
           KEY=$(head -c 5 /dev/urandom | base32)
-          python $YSYX_HOME/monitor.py --middle="Hello, AbstractMachine!" --good=$KEY make ARCH=minirv-npc -C $YSYX_HOME/am-kernels/kernels/hello run mainargs=$KEY
+          python $MONITOR_PY --middle="Hello, AbstractMachine!" --good=$KEY make ARCH=minirv-npc -C $YSYX_HOME/am-kernels/kernels/hello run mainargs=$KEY
 
 
   cpu-tests:
@@ -784,7 +784,7 @@ jobs:
       - name: microbench
         run: |
           KEY=$(head -c 5 /dev/urandom | base32)
-          python $YSYX_HOME/monitor.py --good="$KEY" make ARCH=minirv-npc -C $YSYX_HOME/am-kernels/benchmarks/microbench run mainargs=$KEY
+          python $MONITOR_PY --good="$KEY" make ARCH=minirv-npc -C $YSYX_HOME/am-kernels/benchmarks/microbench run mainargs=$KEY
 
   # rt-thread:
   #   needs: setup
@@ -836,7 +836,7 @@ jobs:
   #         KEY=$(head -c 5 /dev/urandom | base32)
   #         IMG=$YSYX_HOME/am-kernels/benchmarks/microbench/build/microbench-ARCH=minirv-npc.bin
   #         python $AM_HOME/tools/insert-arg.py $IMG 64 the_insert-arg_rule_in_Makefile_will_insert_mainargs_here $KEY
-  #         python $YSYX_HOME/monitor.py --good=$KEY make -C $NPC_HOME sim-iverilog IMG=$IMG
+  #         python $MONITOR_PY --good=$KEY make -C $NPC_HOME sim-iverilog IMG=$IMG
 
   # yosys-sta:
   #   needs: [parse, setup]
@@ -983,7 +983,7 @@ jobs:
   #         KEY=$(head -c 5 /dev/urandom | base32)
   #         IMG=$YSYX_HOME/am-kernels/benchmarks/microbench/build/microbench-riscv32e-npc.bin
   #         python $AM_HOME/tools/insert-arg.py $IMG 64 the_insert-arg_rule_in_Makefile_will_insert_mainargs_here $KEY
-  #         python $YSYX_HOME/monitor.py --good=$KEY make -C $NPC_HOME sim-iverilog-netlist IMG=$IMG NETLIST=$NETLIST CELLS=$CELLS
+  #         python $MONITOR_PY --good=$KEY make -C $NPC_HOME sim-iverilog-netlist IMG=$IMG NETLIST=$NETLIST CELLS=$CELLS
 
   # more-tests:
   #   needs: [setup, hello, cpu-tests, riscv-tests, riscv-arch-test, microbench, rt-thread, iverilog-microbench, yosys-sta, iverilog-netlist-microbench]
