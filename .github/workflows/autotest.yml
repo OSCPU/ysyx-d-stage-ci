@@ -655,7 +655,7 @@ jobs:
             tail -$LOG_LINES_ON_FAILURE "$LOGFILE"
             rm -f "$LOGFILE"
             exit 1
-        fi
+          fi
 
 #      - name: hello
 #        run: |
