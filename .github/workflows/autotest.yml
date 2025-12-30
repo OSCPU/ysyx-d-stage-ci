@@ -763,7 +763,7 @@ jobs:
       - name: riscv-arch-test
         run: |
           git clone --depth 1 https://github.com/NJU-ProjectN/riscv-arch-test-am
-          make ARCH=riscv32-nemu -b -C riscv-arch-test-am run TEST_ISA=E ALL=add-01
+          make ARCH=minirv-npc -b -C riscv-arch-test-am run TEST_ISA=E ALL=add-01
           make ARCH=minirv-npc -C riscv-arch-test-am run TEST_ISA="E"
 
   microbench:
