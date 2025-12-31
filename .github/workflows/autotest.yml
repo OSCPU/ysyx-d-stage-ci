@@ -278,7 +278,7 @@ jobs:
           git clone --depth 1 -b ci https://github.com/NJU-ProjectN/am-kernels
           git clone --depth 1 -b no-gui https://github.com/NJU-ProjectN/nvboard
           git clone --depth 1 -b ysyx6 https://github.com/OSCPU/ysyxSoC
-          git clone --depth 1 -b https://github.com/NJU-ProjectN/fceux-am
+          git clone --depth 1 https://github.com/NJU-ProjectN/fceux-am
 #          git clone --depth 1 https://github.com/NJU-ProjectN/rt-thread-am
 
 
