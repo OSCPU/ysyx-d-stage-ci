@@ -758,7 +758,7 @@ jobs:
           
           # 使用timeout命令运行仿真
           # 注意：这里将输出同时显示在控制台和保存到文件
-          timeout $MARIO_RUN_SECONDS make ARCH=minirv-npc -C $YSYX_HOME/fceux-am run mainargs=mario 2>&1 | tee "$LOGFILE" &
+          timeout $MARIO_RUN_SECONDS make IMG=$YSYX_HOME/fceux-minirv-npc.bin -C $NPC_HOME run mainargs=mario 2>&1 | tee "$LOGFILE" &
           SIM_PID=$!
           
           echo "马里奥仿真进程PID: $SIM_PID"

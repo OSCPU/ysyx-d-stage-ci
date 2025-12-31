@@ -9,8 +9,9 @@ ysyx-workbench
 │   ├── ysyx_xxxxxxxx.v
 │   └── Makefile
 ├── Makefile
-└── patch
-    └── ysyxSoC
+├── patch
+│  └── ysyxSoC
+└── fceux-minirv-npc.bin //完成Makefile规范后在fceux下面生成
 ```
 注意：ysyx-workbench 可以更换名称，但 CI 流程会统一重命名为该名称
 
@@ -103,8 +104,5 @@ CI流程要求
 
 待完成
 
-    riscv-arch-test
-    iverilog-microbench
-    iverilog-netlist-microbench
-    yosys-sta
+    mario
 
