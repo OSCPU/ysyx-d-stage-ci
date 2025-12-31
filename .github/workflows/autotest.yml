@@ -986,7 +986,7 @@ jobs:
           python $MONITOR_PY --good=$KEY make -C $NPC_HOME sim-iverilog-netlist IMG=$IMG NETLIST=$NETLIST CELLS=$CELLS
 
   more-tests:
-    needs: [setup, hello, cpu-tests, riscv-tests, riscv-arch-test, microbench, rt-thread, iverilog-microbench, yosys-sta, iverilog-netlist-microbench]
+    needs: [setup, hello, cpu-tests, riscv-tests, riscv-arch-test, microbench, iverilog-microbench, yosys-sta, iverilog-netlist-microbench]
     runs-on: self-hosted
     steps:
       - name: Download verilog file
