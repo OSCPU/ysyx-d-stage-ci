@@ -811,192 +811,192 @@ jobs:
   #         KEY=$(head -c 5 /dev/urandom | base32)
   #         python $YSYX_HOME/monitor.py --good=$KEY make ARCH=riscv32e-ysyxsoc run
 
-  # iverilog-microbench:
-  #   needs: setup
-  #   runs-on: ubuntu-22.04
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #       with:
-  #         fetch-depth: 0
+  iverilog-microbench:
+    needs: setup
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-  #     - name: Common operations
-  #       uses: ./.github/actions/common
-  #       with:
-  #         YSYX_HOME: ${{ needs.setup.outputs.YSYX_HOME }}
-  #         cache-key: ${{ needs.setup.outputs.cache-key }}
-  #         MAKEFLAGS: ${{ needs.setup.outputs.MAKEFLAGS }}
+      - name: Common operations
+        uses: ./.github/actions/common
+        with:
+          YSYX_HOME: ${{ needs.setup.outputs.YSYX_HOME }}
+          cache-key: ${{ needs.setup.outputs.cache-key }}
+          MAKEFLAGS: ${{ needs.setup.outputs.MAKEFLAGS }}
 
-  #     - name: compile microbench
-  #       run: |
-  #         make ARCH=minirv-npc -C $YSYX_HOME/am-kernels/benchmarks/microbench mainargs=the_insert-arg_rule_in_Makefile_will_insert_mainargs_here
+      - name: compile microbench
+        run: |
+          make ARCH=minirv-npc -C $YSYX_HOME/am-kernels/benchmarks/microbench mainargs=the_insert-arg_rule_in_Makefile_will_insert_mainargs_here
 
-  #     - name: run microbench with iverilog
-  #       run: |
-  #         make -C $NPC_HOME clean
-  #         KEY=$(head -c 5 /dev/urandom | base32)
-  #         IMG=$YSYX_HOME/am-kernels/benchmarks/microbench/build/microbench-ARCH=minirv-npc.bin
-  #         python $AM_HOME/tools/insert-arg.py $IMG 64 the_insert-arg_rule_in_Makefile_will_insert_mainargs_here $KEY
-  #         python $MONITOR_PY --good=$KEY make -C $NPC_HOME sim-iverilog IMG=$IMG
+      - name: run microbench with iverilog
+        run: |
+          make -C $NPC_HOME clean
+          KEY=$(head -c 5 /dev/urandom | base32)
+          IMG=$YSYX_HOME/am-kernels/benchmarks/microbench/build/microbench-minirv-npc.bin
+          python $AM_HOME/tools/insert-arg.py $IMG 64 the_insert-arg_rule_in_Makefile_will_insert_mainargs_here $KEY
+          python $MONITOR_PY --good=$KEY make -C $NPC_HOME sim-iverilog IMG=$IMG
 
-  # yosys-sta:
-  #   needs: [parse, setup]
-  #   runs-on: ubuntu-22.04
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #       with:
-  #         fetch-depth: 0
+  yosys-sta:
+    needs: [parse, setup]
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-  #     - name: Common operations
-  #       uses: ./.github/actions/common
-  #       with:
-  #         YSYX_HOME: ${{ needs.setup.outputs.YSYX_HOME }}
-  #         cache-key: ${{ needs.setup.outputs.cache-key }}
-  #         MAKEFLAGS: ${{ needs.setup.outputs.MAKEFLAGS }}
-  #         install-toolchain: 'false'
+      - name: Common operations
+        uses: ./.github/actions/common
+        with:
+          YSYX_HOME: ${{ needs.setup.outputs.YSYX_HOME }}
+          cache-key: ${{ needs.setup.outputs.cache-key }}
+          MAKEFLAGS: ${{ needs.setup.outputs.MAKEFLAGS }}
+          install-toolchain: 'false'
 
-  #     - name: Install dependency
-  #       run: |
-  #         sudo apt install -y libunwind-dev liblzma-dev
+      - name: Install dependency
+        run: |
+          sudo apt install -y libunwind-dev liblzma-dev
 
-  #     - name: Clone yosys-sta
-  #       run: |
-  #         git clone -b ci https://github.com/OSCPU/yosys-sta
-  #         cd yosys-sta
-  #         make init
-  #         echo exit | ./bin/iEDA -v
+      - name: Clone yosys-sta
+        run: |
+          git clone -b ci https://github.com/OSCPU/yosys-sta
+          cd yosys-sta
+          make init
+          echo exit | ./bin/iEDA -v
 
-  #     - name: Generate Verilog
-  #       run: |
-  #         make -C $NPC_HOME verilog
+      - name: Generate Verilog
+        run: |
+          make -C $NPC_HOME verilog
 
-  #     - name: Set environment variables
-  #       run: |
-  #         echo "STUID=${{ needs.parse.outputs.STUID }}" >> $GITHUB_ENV
-  #         echo "VFILE=${{ needs.setup.outputs.VFILE }}" >> $GITHUB_ENV
+      - name: Set environment variables
+        run: |
+          echo "STUID=${{ needs.parse.outputs.STUID }}" >> $GITHUB_ENV
+          echo "VFILE=${{ needs.setup.outputs.VFILE }}" >> $GITHUB_ENV
 
-  #     - name: Run STA
-  #       run: |
-  #         make -C yosys-sta sta DESIGN=ysyx_$STUID CLK_FREQ_MHZ=500 CLK_PORT_NAME=clock RTL_FILES=$VFILE
+      - name: Run STA
+        run: |
+          make -C yosys-sta sta DESIGN=ysyx_$STUID CLK_FREQ_MHZ=500 CLK_PORT_NAME=clock RTL_FILES=$VFILE
 
-  #     - name: Check verilog module name
-  #       run: |
-  #         YOSYS_LOG=yosys-sta/result/ysyx_$STUID-500MHz/yosys.log
-  #         LINE=`grep -n "Successfully finished Verilog frontend" $YOSYS_LOG | head -n 1 | grep -o '^[0-9]*'`
-  #         if head -n $LINE $YOSYS_LOG | grep "Generating RTLIL representation for module" | grep -v "ysyx_$STUID" ; then
-  #           echo "There exist modules which do not start with ysyx_$STUID"
-  #           false
-  #         fi
+      - name: Check verilog module name
+        run: |
+          YOSYS_LOG=yosys-sta/result/ysyx_$STUID-500MHz/yosys.log
+          LINE=`grep -n "Successfully finished Verilog frontend" $YOSYS_LOG | head -n 1 | grep -o '^[0-9]*'`
+          if head -n $LINE $YOSYS_LOG | grep "Generating RTLIL representation for module" | grep -v "ysyx_$STUID" ; then
+            echo "There exist modules which do not start with ysyx_$STUID"
+            false
+          fi
 
-  #     - name: Check latch
-  #       run: |
-  #         YOSYS_LOG=yosys-sta/result/ysyx_$STUID-500MHz/synth_stat.txt
-  #         if grep "DLL\|DLH" $YOSYS_LOG ; then
-  #           echo "The design contains latch, which is not allowed."
-  #           false
-  #         fi
+      - name: Check latch
+        run: |
+          YOSYS_LOG=yosys-sta/result/ysyx_$STUID-500MHz/synth_stat.txt
+          if grep "DLL\|DLH" $YOSYS_LOG ; then
+            echo "The design contains latch, which is not allowed."
+            false
+          fi
 
-  #     - name: Parse area
-  #       run: |
-  #         YOSYS_LOG=yosys-sta/result/ysyx_$STUID-500MHz/yosys-fixed.log
-  #         AREA=`grep -o "Chip area for module .*: .*" $YOSYS_LOG | sed -e 's/.*: \([0-9]*\.[0-9]*\)$/\1/'`
-  #         if [[ $AREA == "" ]] ; then
-  #           echo "Can not obtain area from yosys-sta. Abort."
-  #           false
-  #         fi
-  #         echo "Area: $AREA"
-  #         echo "AREA=$AREA" >> $GITHUB_ENV
+      - name: Parse area
+        run: |
+          YOSYS_LOG=yosys-sta/result/ysyx_$STUID-500MHz/yosys-fixed.log
+          AREA=`grep -o "Chip area for module .*: .*" $YOSYS_LOG | sed -e 's/.*: \([0-9]*\.[0-9]*\)$/\1/'`
+          if [[ $AREA == "" ]] ; then
+            echo "Can not obtain area from yosys-sta. Abort."
+            false
+          fi
+          echo "Area: $AREA"
+          echo "AREA=$AREA" >> $GITHUB_ENV
 
-  #     - name: Run STA with older version
-  #       run: |
-  #         cd yosys-sta
-  #         git config --global user.email "ci@ysyx.org"
-  #         git config --global user.name "ysyx-ci"
-  #         git revert --no-edit 97fa7fcb80de4966c6f390af8df1b37d6d4c42c8
-  #         make clean
-  #         make sta DESIGN=ysyx_$STUID CLK_FREQ_MHZ=500 CLK_PORT_NAME=clock RTL_FILES=$VFILE
+      - name: Run STA with older version
+        run: |
+          cd yosys-sta
+          git config --global user.email "ci@ysyx.org"
+          git config --global user.name "ysyx-ci"
+          git revert --no-edit 97fa7fcb80de4966c6f390af8df1b37d6d4c42c8
+          make clean
+          make sta DESIGN=ysyx_$STUID CLK_FREQ_MHZ=500 CLK_PORT_NAME=clock RTL_FILES=$VFILE
 
-  #     - name: Parse area with older version
-  #       run: |
-  #         YOSYS_LOG=yosys-sta/result/ysyx_$STUID-500MHz/yosys-fixed.log
-  #         AREA_OLD=`grep -o "Chip area for module .*: .*" $YOSYS_LOG | sed -e 's/.*: \([0-9]*\.[0-9]*\)$/\1/'`
-  #         if [[ $AREA_OLD == "" ]] ; then
-  #           echo "Can not obtain area from yosys-sta. Abort."
-  #           false
-  #         fi
-  #         echo "Area: $AREA_OLD"
-  #         echo "AREA_OLD=$AREA_OLD" >> $GITHUB_ENV
+      - name: Parse area with older version
+        run: |
+          YOSYS_LOG=yosys-sta/result/ysyx_$STUID-500MHz/yosys-fixed.log
+          AREA_OLD=`grep -o "Chip area for module .*: .*" $YOSYS_LOG | sed -e 's/.*: \([0-9]*\.[0-9]*\)$/\1/'`
+          if [[ $AREA_OLD == "" ]] ; then
+            echo "Can not obtain area from yosys-sta. Abort."
+            false
+          fi
+          echo "Area: $AREA_OLD"
+          echo "AREA_OLD=$AREA_OLD" >> $GITHUB_ENV
 
-  #     - name: Check area
-  #       run: |
-  #         AREA_BUDGET=16500
-  #         AREA_OLD_BUDGET=25000
-  #         if [[ $AREA -gt $AREA_BUDGET ]] ; then
-  #           if [[ $AREA_OLD -gt $AREA_OLD_BUDGET ]] ; then
-  #             echo "Area($AREA) is larger than the budget($AREA_BUDGET)."
-  #             echo "Area for old version of yosys-sta($AREA_OLD) is larger than the budget($AREA_OLD_BUDGET)."
-  #             false
-  #           fi
-  #         fi
+      - name: Check area
+        run: |
+          AREA_BUDGET=16500
+          AREA_OLD_BUDGET=25000
+          if [[ $AREA -gt $AREA_BUDGET ]] ; then
+            if [[ $AREA_OLD -gt $AREA_OLD_BUDGET ]] ; then
+              echo "Area($AREA) is larger than the budget($AREA_BUDGET)."
+              echo "Area for old version of yosys-sta($AREA_OLD) is larger than the budget($AREA_OLD_BUDGET)."
+              false
+            fi
+          fi
 
-  #     - name: Upload netlist file
-  #       uses: actions/upload-artifact@v4
-  #       with:
-  #         name: netlist
-  #         path: yosys-sta/result/ysyx_${{ needs.parse.outputs.STUID }}-500MHz/ysyx_${{ needs.parse.outputs.STUID }}.netlist.fixed.v
+      - name: Upload netlist file
+        uses: actions/upload-artifact@v4
+        with:
+          name: netlist
+          path: yosys-sta/result/ysyx_${{ needs.parse.outputs.STUID }}-500MHz/ysyx_${{ needs.parse.outputs.STUID }}.netlist.fixed.v
 
-  # iverilog-netlist-microbench:
-  #   needs: [parse, setup, yosys-sta]
-  #   runs-on: ubuntu-22.04
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #       with:
-  #         fetch-depth: 0
+  iverilog-netlist-microbench:
+    needs: [parse, setup, yosys-sta]
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-  #     - name: Common operations
-  #       uses: ./.github/actions/common
-  #       with:
-  #         YSYX_HOME: ${{ needs.setup.outputs.YSYX_HOME }}
-  #         cache-key: ${{ needs.setup.outputs.cache-key }}
-  #         MAKEFLAGS: ${{ needs.setup.outputs.MAKEFLAGS }}
+      - name: Common operations
+        uses: ./.github/actions/common
+        with:
+          YSYX_HOME: ${{ needs.setup.outputs.YSYX_HOME }}
+          cache-key: ${{ needs.setup.outputs.cache-key }}
+          MAKEFLAGS: ${{ needs.setup.outputs.MAKEFLAGS }}
 
-  #     - name: Download verilog file
-  #       uses: actions/download-artifact@v4
-  #       with:
-  #         name: netlist
+      - name: Download verilog file
+        uses: actions/download-artifact@v4
+        with:
+          name: netlist
 
-  #     - name: Clone yosys-sta
-  #       run: |
-  #         git clone -b ci https://github.com/OSCPU/yosys-sta
-  #         cd yosys-sta
-  #         make init
-  #         echo exit | ./bin/iEDA -v
+      - name: Clone yosys-sta
+        run: |
+          git clone -b ci https://github.com/OSCPU/yosys-sta
+          cd yosys-sta
+          make init
+          echo exit | ./bin/iEDA -v
 
-  #     - name: compile microbench
-  #       run: |
-  #         make ARCH=riscv32e-npc -C $YSYX_HOME/am-kernels/benchmarks/microbench mainargs=the_insert-arg_rule_in_Makefile_will_insert_mainargs_here
+      - name: compile microbench
+        run: |
+          make ARCH=riscv32e-npc -C $YSYX_HOME/am-kernels/benchmarks/microbench mainargs=the_insert-arg_rule_in_Makefile_will_insert_mainargs_here
 
-  #     - name: run microbench with iverilog netlist
-  #       run: |
-  #         make -C $NPC_HOME clean
-  #         NETLIST=`pwd`/ysyx_${{ needs.parse.outputs.STUID }}.netlist.fixed.v
-  #         CELLS=`pwd`/yosys-sta/pdk/nangate45/sim/cells.v
-  #         KEY=$(head -c 5 /dev/urandom | base32)
-  #         IMG=$YSYX_HOME/am-kernels/benchmarks/microbench/build/microbench-riscv32e-npc.bin
-  #         python $AM_HOME/tools/insert-arg.py $IMG 64 the_insert-arg_rule_in_Makefile_will_insert_mainargs_here $KEY
-  #         python $MONITOR_PY --good=$KEY make -C $NPC_HOME sim-iverilog-netlist IMG=$IMG NETLIST=$NETLIST CELLS=$CELLS
+      - name: run microbench with iverilog netlist
+        run: |
+          make -C $NPC_HOME clean
+          NETLIST=`pwd`/ysyx_${{ needs.parse.outputs.STUID }}.netlist.fixed.v
+          CELLS=`pwd`/yosys-sta/pdk/nangate45/sim/cells.v
+          KEY=$(head -c 5 /dev/urandom | base32)
+          IMG=$YSYX_HOME/am-kernels/benchmarks/microbench/build/microbench-minirv-npc.bin
+          python $AM_HOME/tools/insert-arg.py $IMG 64 the_insert-arg_rule_in_Makefile_will_insert_mainargs_here $KEY
+          python $MONITOR_PY --good=$KEY make -C $NPC_HOME sim-iverilog-netlist IMG=$IMG NETLIST=$NETLIST CELLS=$CELLS
 
-  # more-tests:
-  #   needs: [setup, hello, cpu-tests, riscv-tests, riscv-arch-test, microbench, rt-thread, iverilog-microbench, yosys-sta, iverilog-netlist-microbench]
-  #   runs-on: self-hosted
-  #   steps:
-  #     - name: Download verilog file
-  #       uses: actions/download-artifact@v4
-  #       with:
-  #         name: verilog
-  #     - name: More tests
-  #       run: |
-  #         VFILE=`basename "${{ needs.setup.outputs.VFILE }}"`
-  #         bash ../../../more-tests.sh `realpath $VFILE`
+  more-tests:
+    needs: [setup, hello, cpu-tests, riscv-tests, riscv-arch-test, microbench, rt-thread, iverilog-microbench, yosys-sta, iverilog-netlist-microbench]
+    runs-on: self-hosted
+    steps:
+      - name: Download verilog file
+        uses: actions/download-artifact@v4
+        with:
+          name: verilog
+      - name: More tests
+        run: |
+          VFILE=`basename "${{ needs.setup.outputs.VFILE }}"`
+          bash ../../../more-tests.sh `realpath $VFILE`
 
   # push-code:
   #   needs: [parse, setup, more-tests]
