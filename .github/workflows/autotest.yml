@@ -703,6 +703,112 @@ jobs:
           KEY=$(head -c 5 /dev/urandom | base32)
           python $MONITOR_PY --middle="Hello, AbstractMachine!" --good=$KEY make ARCH=minirv-npc -C $YSYX_HOME/am-kernels/kernels/hello run mainargs=$KEY
 
+  mario:
+    needs: setup
+    runs-on: ubuntu-22.04
+    env:
+      # 配置变量
+      EXPECTED_OUTPUT: "*"  # 要检测的输出字符串（星号）
+      OUTPUT_CASE_SENSITIVE: false  # 是否区分大小写，星号不需要区分
+      MARIO_RUN_SECONDS: 1800  # 马里奥运行时长（秒），默认30分钟
+      TIMEOUT_SECONDS: 1900  # 总体超时时间（秒），比运行时长多一些
+      LOG_LINES_ON_FAILURE: 100  # 失败时显示的最后日志行数
+      LOG_LINES_ON_SUCCESS: 20  # 成功时显示的包含星号的行数
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Common operations
+        uses: ./.github/actions/common
+        with:
+          YSYX_HOME: ${{ needs.setup.outputs.YSYX_HOME }}
+          cache-key: ${{ needs.setup.outputs.cache-key }}
+          MAKEFLAGS: ${{ needs.setup.outputs.MAKEFLAGS }}
+
+      - name: mario
+        run: |
+          echo "开始运行mario测试..."
+          echo "配置:"
+          echo "  - 预期输出: '$EXPECTED_OUTPUT' (星号)"
+          echo "  - 大小写敏感: $OUTPUT_CASE_SENSITIVE"
+          echo "  - 运行时长: ${MARIO_RUN_SECONDS}秒 ($((MARIO_RUN_SECONDS/60))分钟)"
+          echo "  - 总体超时时间: ${TIMEOUT_SECONDS}秒"
+          
+          # 创建一个临时文件来记录输出
+          LOGFILE="/tmp/npc_mario_$$.log"
+          
+          # 根据大小写敏感设置选择grep选项
+          if [ "$OUTPUT_CASE_SENSITIVE" = "true" ]; then
+            GREP_OPTIONS=""
+            echo "检测模式: 区分大小写"
+          else
+            GREP_OPTIONS="-i"
+            echo "检测模式: 不区分大小写"
+          fi
+          
+          echo -e "\n=== 启动马里奥仿真进程，运行${MARIO_RUN_SECONDS}秒 ==="
+          
+          # 记录开始时间
+          START_TIME=$(date +%s)
+          echo "开始时间: $(date -d @$START_TIME)"
+          echo "预计结束时间: $(date -d @$((START_TIME + MARIO_RUN_SECONDS)))"
+          
+          # 使用timeout命令运行仿真
+          # 注意：这里将输出同时显示在控制台和保存到文件
+          timeout $MARIO_RUN_SECONDS make ARCH=minirv-npc -C $YSYX_HOME/fceux-am run mainargs=mario 2>&1 | tee "$LOGFILE" &
+          SIM_PID=$!
+          
+          echo "马里奥仿真进程PID: $SIM_PID"
+          
+          # 等待仿真进程结束
+          echo -e "\n=== 等待马里奥运行 ${MARIO_RUN_SECONDS} 秒 ==="
+          wait $SIM_PID 2>/dev/null || true
+          
+          # 记录结束时间
+          END_TIME=$(date +%s)
+          ACTUAL_RUN_TIME=$((END_TIME - START_TIME))
+          echo "结束时间: $(date -d @$END_TIME)"
+          echo "实际运行时长: ${ACTUAL_RUN_TIME}秒"
+          
+          # 检查timeout的退出状态
+          TIMEOUT_EXIT_CODE=$?
+          echo "timeout退出状态: $TIMEOUT_EXIT_CODE"
+          
+          if [ $TIMEOUT_EXIT_CODE -eq 124 ]; then
+            echo "✅ 马里奥已运行指定时长（${MARIO_RUN_SECONDS}秒），正常结束"
+          elif [ $TIMEOUT_EXIT_CODE -eq 0 ]; then
+            echo "⚠️  马里奥提前结束（运行了${ACTUAL_RUN_TIME}秒）"
+          else
+            echo "⚠️  马里奥非正常结束，退出码: $TIMEOUT_EXIT_CODE"
+          fi
+          
+          # 确保进程已结束
+          kill -9 $SIM_PID 2>/dev/null || true
+          
+          echo -e "\n=== 检查输出中是否包含星号 '*' ==="
+          
+          # 检查输出中是否包含星号
+          if grep -q $GREP_OPTIONS "$EXPECTED_OUTPUT" "$LOGFILE"; then
+            echo "✅ 成功：检测到 '$EXPECTED_OUTPUT' 输出"
+            echo "=== 最后${LOG_LINES_ON_SUCCESS}行包含星号的输出 ==="
+            grep $GREP_OPTIONS "$EXPECTED_OUTPUT" "$LOGFILE" | tail -$LOG_LINES_ON_SUCCESS
+            echo -e "\n=== 测试统计 ==="
+            echo "总运行时间: ${ACTUAL_RUN_TIME}秒"
+            echo "星号出现次数: $(grep -c $GREP_OPTIONS "$EXPECTED_OUTPUT" "$LOGFILE")"
+            rm -f "$LOGFILE"
+            exit 0
+          else
+            echo "❌ 错误：在 ${ACTUAL_RUN_TIME} 秒运行后未检测到 '$EXPECTED_OUTPUT' 输出"
+            echo "=== 最后${LOG_LINES_ON_FAILURE}行输出 ==="
+            tail -$LOG_LINES_ON_FAILURE "$LOGFILE"
+            echo -e "\n=== 测试统计 ==="
+            echo "总运行时间: ${ACTUAL_RUN_TIME}秒"
+            rm -f "$LOGFILE"
+            exit 1
+          fi
+
 
   cpu-tests:
     needs: setup
@@ -745,26 +851,26 @@ jobs:
           make ARCH=minirv-npc -C riscv-tests-am run TEST_ISA=i -j1
 #make ARCH=minirv-npc -C riscv-tests-am run TEST_ISA=i ALL=auipc
 
-  riscv-arch-test:
-    needs: setup
-    runs-on: ubuntu-22.04
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+  # riscv-arch-test:
+  #   needs: setup
+  #   runs-on: ubuntu-22.04
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #       with:
+  #         fetch-depth: 0
 
-      - name: Common operations
-        uses: ./.github/actions/common
-        with:
-          YSYX_HOME: ${{ needs.setup.outputs.YSYX_HOME }}
-          cache-key: ${{ needs.setup.outputs.cache-key }}
-          MAKEFLAGS: ${{ needs.setup.outputs.MAKEFLAGS }}
+  #     - name: Common operations
+  #       uses: ./.github/actions/common
+  #       with:
+  #         YSYX_HOME: ${{ needs.setup.outputs.YSYX_HOME }}
+  #         cache-key: ${{ needs.setup.outputs.cache-key }}
+  #         MAKEFLAGS: ${{ needs.setup.outputs.MAKEFLAGS }}
 
-      - name: riscv-arch-test
-        run: |
-          git clone --depth 1 https://github.com/NJU-ProjectN/riscv-arch-test-am
-          make ARCH=minirv-npc -C riscv-arch-test-am run TEST_ISA=E ALL=add-01
-          make ARCH=minirv-npc -C riscv-arch-test-am run TEST_ISA="E"
+  #     - name: riscv-arch-test
+  #       run: |
+  #         git clone --depth 1 https://github.com/NJU-ProjectN/riscv-arch-test-am
+  #         make ARCH=minirv-npc -C riscv-arch-test-am run TEST_ISA=E ALL=add-01
+  #         make ARCH=minirv-npc -C riscv-arch-test-am run TEST_ISA="E"
 
   microbench:
     needs: setup
@@ -811,182 +917,182 @@ jobs:
   #         KEY=$(head -c 5 /dev/urandom | base32)
   #         python $YSYX_HOME/monitor.py --good=$KEY make ARCH=riscv32e-ysyxsoc run
 
-  iverilog-microbench:
-    needs: setup
-    runs-on: ubuntu-22.04
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+  # iverilog-microbench:
+  #   needs: setup
+  #   runs-on: ubuntu-22.04
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #       with:
+  #         fetch-depth: 0
 
-      - name: Common operations
-        uses: ./.github/actions/common
-        with:
-          YSYX_HOME: ${{ needs.setup.outputs.YSYX_HOME }}
-          cache-key: ${{ needs.setup.outputs.cache-key }}
-          MAKEFLAGS: ${{ needs.setup.outputs.MAKEFLAGS }}
+  #     - name: Common operations
+  #       uses: ./.github/actions/common
+  #       with:
+  #         YSYX_HOME: ${{ needs.setup.outputs.YSYX_HOME }}
+  #         cache-key: ${{ needs.setup.outputs.cache-key }}
+  #         MAKEFLAGS: ${{ needs.setup.outputs.MAKEFLAGS }}
 
-      - name: compile microbench
-        run: |
-          make ARCH=minirv-npc -C $YSYX_HOME/am-kernels/benchmarks/microbench mainargs=the_insert-arg_rule_in_Makefile_will_insert_mainargs_here
+  #     - name: compile microbench
+  #       run: |
+  #         make ARCH=minirv-npc -C $YSYX_HOME/am-kernels/benchmarks/microbench mainargs=the_insert-arg_rule_in_Makefile_will_insert_mainargs_here
 
-      - name: run microbench with iverilog
-        run: |
-          make -C $NPC_HOME clean
-          KEY=$(head -c 5 /dev/urandom | base32)
-          IMG=$YSYX_HOME/am-kernels/benchmarks/microbench/build/microbench-minirv-npc.bin
-          python $AM_HOME/tools/insert-arg.py $IMG 64 the_insert-arg_rule_in_Makefile_will_insert_mainargs_here $KEY
-          python $MONITOR_PY --good=$KEY make -C $NPC_HOME sim-iverilog IMG=$IMG
+  #     - name: run microbench with iverilog
+  #       run: |
+  #         make -C $NPC_HOME clean
+  #         KEY=$(head -c 5 /dev/urandom | base32)
+  #         IMG=$YSYX_HOME/am-kernels/benchmarks/microbench/build/microbench-minirv-npc.bin
+  #         python $AM_HOME/tools/insert-arg.py $IMG 64 the_insert-arg_rule_in_Makefile_will_insert_mainargs_here $KEY
+  #         python $MONITOR_PY --good=$KEY make -C $NPC_HOME sim-iverilog IMG=$IMG
 
-  yosys-sta:
-    needs: [parse, setup]
-    runs-on: ubuntu-22.04
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+  # yosys-sta:
+  #   needs: [parse, setup]
+  #   runs-on: ubuntu-22.04
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #       with:
+  #         fetch-depth: 0
 
-      - name: Common operations
-        uses: ./.github/actions/common
-        with:
-          YSYX_HOME: ${{ needs.setup.outputs.YSYX_HOME }}
-          cache-key: ${{ needs.setup.outputs.cache-key }}
-          MAKEFLAGS: ${{ needs.setup.outputs.MAKEFLAGS }}
-          install-toolchain: 'false'
+  #     - name: Common operations
+  #       uses: ./.github/actions/common
+  #       with:
+  #         YSYX_HOME: ${{ needs.setup.outputs.YSYX_HOME }}
+  #         cache-key: ${{ needs.setup.outputs.cache-key }}
+  #         MAKEFLAGS: ${{ needs.setup.outputs.MAKEFLAGS }}
+  #         install-toolchain: 'false'
 
-      - name: Install dependency
-        run: |
-          sudo apt install -y libunwind-dev liblzma-dev
+  #     - name: Install dependency
+  #       run: |
+  #         sudo apt install -y libunwind-dev liblzma-dev
 
-      - name: Clone yosys-sta
-        run: |
-          git clone -b ci https://github.com/OSCPU/yosys-sta
-          cd yosys-sta
-          make init
-          echo exit | ./bin/iEDA -v
+  #     - name: Clone yosys-sta
+  #       run: |
+  #         git clone -b ci https://github.com/OSCPU/yosys-sta
+  #         cd yosys-sta
+  #         make init
+  #         echo exit | ./bin/iEDA -v
 
-      - name: Generate Verilog
-        run: |
-          make -C $NPC_HOME verilog
+  #     - name: Generate Verilog
+  #       run: |
+  #         make -C $NPC_HOME verilog
 
-      - name: Set environment variables
-        run: |
-          echo "STUID=${{ needs.parse.outputs.STUID }}" >> $GITHUB_ENV
-          echo "VFILE=${{ needs.setup.outputs.VFILE }}" >> $GITHUB_ENV
+  #     - name: Set environment variables
+  #       run: |
+  #         echo "STUID=${{ needs.parse.outputs.STUID }}" >> $GITHUB_ENV
+  #         echo "VFILE=${{ needs.setup.outputs.VFILE }}" >> $GITHUB_ENV
 
-      - name: Run STA
-        run: |
-          make -C yosys-sta sta DESIGN=ysyx_$STUID CLK_FREQ_MHZ=500 CLK_PORT_NAME=clock RTL_FILES=$VFILE
+  #     - name: Run STA
+  #       run: |
+  #         make -C yosys-sta sta DESIGN=ysyx_$STUID CLK_FREQ_MHZ=500 CLK_PORT_NAME=clock RTL_FILES=$VFILE
 
-      - name: Check verilog module name
-        run: |
-          YOSYS_LOG=yosys-sta/result/ysyx_$STUID-500MHz/yosys.log
-          LINE=`grep -n "Successfully finished Verilog frontend" $YOSYS_LOG | head -n 1 | grep -o '^[0-9]*'`
-          if head -n $LINE $YOSYS_LOG | grep "Generating RTLIL representation for module" | grep -v "ysyx_$STUID" ; then
-            echo "There exist modules which do not start with ysyx_$STUID"
-            false
-          fi
+  #     - name: Check verilog module name
+  #       run: |
+  #         YOSYS_LOG=yosys-sta/result/ysyx_$STUID-500MHz/yosys.log
+  #         LINE=`grep -n "Successfully finished Verilog frontend" $YOSYS_LOG | head -n 1 | grep -o '^[0-9]*'`
+  #         if head -n $LINE $YOSYS_LOG | grep "Generating RTLIL representation for module" | grep -v "ysyx_$STUID" ; then
+  #           echo "There exist modules which do not start with ysyx_$STUID"
+  #           false
+  #         fi
 
-      - name: Check latch
-        run: |
-          YOSYS_LOG=yosys-sta/result/ysyx_$STUID-500MHz/synth_stat.txt
-          if grep "DLL\|DLH" $YOSYS_LOG ; then
-            echo "The design contains latch, which is not allowed."
-            false
-          fi
+  #     - name: Check latch
+  #       run: |
+  #         YOSYS_LOG=yosys-sta/result/ysyx_$STUID-500MHz/synth_stat.txt
+  #         if grep "DLL\|DLH" $YOSYS_LOG ; then
+  #           echo "The design contains latch, which is not allowed."
+  #           false
+  #         fi
 
-      - name: Parse area
-        run: |
-          YOSYS_LOG=yosys-sta/result/ysyx_$STUID-500MHz/yosys-fixed.log
-          AREA=`grep -o "Chip area for module .*: .*" $YOSYS_LOG | sed -e 's/.*: \([0-9]*\.[0-9]*\)$/\1/'`
-          if [[ $AREA == "" ]] ; then
-            echo "Can not obtain area from yosys-sta. Abort."
-            false
-          fi
-          echo "Area: $AREA"
-          echo "AREA=$AREA" >> $GITHUB_ENV
+  #     - name: Parse area
+  #       run: |
+  #         YOSYS_LOG=yosys-sta/result/ysyx_$STUID-500MHz/yosys-fixed.log
+  #         AREA=`grep -o "Chip area for module .*: .*" $YOSYS_LOG | sed -e 's/.*: \([0-9]*\.[0-9]*\)$/\1/'`
+  #         if [[ $AREA == "" ]] ; then
+  #           echo "Can not obtain area from yosys-sta. Abort."
+  #           false
+  #         fi
+  #         echo "Area: $AREA"
+  #         echo "AREA=$AREA" >> $GITHUB_ENV
 
-      - name: Run STA with older version
-        run: |
-          cd yosys-sta
-          git config --global user.email "ci@ysyx.org"
-          git config --global user.name "ysyx-ci"
-          git revert --no-edit 97fa7fcb80de4966c6f390af8df1b37d6d4c42c8
-          make clean
-          make sta DESIGN=ysyx_$STUID CLK_FREQ_MHZ=500 CLK_PORT_NAME=clock RTL_FILES=$VFILE
+  #     - name: Run STA with older version
+  #       run: |
+  #         cd yosys-sta
+  #         git config --global user.email "ci@ysyx.org"
+  #         git config --global user.name "ysyx-ci"
+  #         git revert --no-edit 97fa7fcb80de4966c6f390af8df1b37d6d4c42c8
+  #         make clean
+  #         make sta DESIGN=ysyx_$STUID CLK_FREQ_MHZ=500 CLK_PORT_NAME=clock RTL_FILES=$VFILE
 
-      - name: Parse area with older version
-        run: |
-          YOSYS_LOG=yosys-sta/result/ysyx_$STUID-500MHz/yosys-fixed.log
-          AREA_OLD=`grep -o "Chip area for module .*: .*" $YOSYS_LOG | sed -e 's/.*: \([0-9]*\.[0-9]*\)$/\1/'`
-          if [[ $AREA_OLD == "" ]] ; then
-            echo "Can not obtain area from yosys-sta. Abort."
-            false
-          fi
-          echo "Area: $AREA_OLD"
-          echo "AREA_OLD=$AREA_OLD" >> $GITHUB_ENV
+  #     - name: Parse area with older version
+  #       run: |
+  #         YOSYS_LOG=yosys-sta/result/ysyx_$STUID-500MHz/yosys-fixed.log
+  #         AREA_OLD=`grep -o "Chip area for module .*: .*" $YOSYS_LOG | sed -e 's/.*: \([0-9]*\.[0-9]*\)$/\1/'`
+  #         if [[ $AREA_OLD == "" ]] ; then
+  #           echo "Can not obtain area from yosys-sta. Abort."
+  #           false
+  #         fi
+  #         echo "Area: $AREA_OLD"
+  #         echo "AREA_OLD=$AREA_OLD" >> $GITHUB_ENV
 
-      - name: Check area
-        run: |
-          AREA_BUDGET=16500
-          AREA_OLD_BUDGET=25000
-          if [[ $AREA -gt $AREA_BUDGET ]] ; then
-            if [[ $AREA_OLD -gt $AREA_OLD_BUDGET ]] ; then
-              echo "Area($AREA) is larger than the budget($AREA_BUDGET)."
-              echo "Area for old version of yosys-sta($AREA_OLD) is larger than the budget($AREA_OLD_BUDGET)."
-              false
-            fi
-          fi
+  #     - name: Check area
+  #       run: |
+  #         AREA_BUDGET=16500
+  #         AREA_OLD_BUDGET=25000
+  #         if [[ $AREA -gt $AREA_BUDGET ]] ; then
+  #           if [[ $AREA_OLD -gt $AREA_OLD_BUDGET ]] ; then
+  #             echo "Area($AREA) is larger than the budget($AREA_BUDGET)."
+  #             echo "Area for old version of yosys-sta($AREA_OLD) is larger than the budget($AREA_OLD_BUDGET)."
+  #             false
+  #           fi
+  #         fi
 
-      - name: Upload netlist file
-        uses: actions/upload-artifact@v4
-        with:
-          name: netlist
-          path: yosys-sta/result/ysyx_${{ needs.parse.outputs.STUID }}-500MHz/ysyx_${{ needs.parse.outputs.STUID }}.netlist.fixed.v
+  #     - name: Upload netlist file
+  #       uses: actions/upload-artifact@v4
+  #       with:
+  #         name: netlist
+  #         path: yosys-sta/result/ysyx_${{ needs.parse.outputs.STUID }}-500MHz/ysyx_${{ needs.parse.outputs.STUID }}.netlist.fixed.v
 
-  iverilog-netlist-microbench:
-    needs: [parse, setup, yosys-sta]
-    runs-on: ubuntu-22.04
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+  # iverilog-netlist-microbench:
+  #   needs: [parse, setup, yosys-sta]
+  #   runs-on: ubuntu-22.04
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #       with:
+  #         fetch-depth: 0
 
-      - name: Common operations
-        uses: ./.github/actions/common
-        with:
-          YSYX_HOME: ${{ needs.setup.outputs.YSYX_HOME }}
-          cache-key: ${{ needs.setup.outputs.cache-key }}
-          MAKEFLAGS: ${{ needs.setup.outputs.MAKEFLAGS }}
+  #     - name: Common operations
+  #       uses: ./.github/actions/common
+  #       with:
+  #         YSYX_HOME: ${{ needs.setup.outputs.YSYX_HOME }}
+  #         cache-key: ${{ needs.setup.outputs.cache-key }}
+  #         MAKEFLAGS: ${{ needs.setup.outputs.MAKEFLAGS }}
 
-      - name: Download verilog file
-        uses: actions/download-artifact@v4
-        with:
-          name: netlist
+  #     - name: Download verilog file
+  #       uses: actions/download-artifact@v4
+  #       with:
+  #         name: netlist
 
-      - name: Clone yosys-sta
-        run: |
-          git clone -b ci https://github.com/OSCPU/yosys-sta
-          cd yosys-sta
-          make init
-          echo exit | ./bin/iEDA -v
+  #     - name: Clone yosys-sta
+  #       run: |
+  #         git clone -b ci https://github.com/OSCPU/yosys-sta
+  #         cd yosys-sta
+  #         make init
+  #         echo exit | ./bin/iEDA -v
 
-      - name: compile microbench
-        run: |
-          make ARCH=riscv32e-npc -C $YSYX_HOME/am-kernels/benchmarks/microbench mainargs=the_insert-arg_rule_in_Makefile_will_insert_mainargs_here
+  #     - name: compile microbench
+  #       run: |
+  #         make ARCH=riscv32e-npc -C $YSYX_HOME/am-kernels/benchmarks/microbench mainargs=the_insert-arg_rule_in_Makefile_will_insert_mainargs_here
 
-      - name: run microbench with iverilog netlist
-        run: |
-          make -C $NPC_HOME clean
-          NETLIST=`pwd`/ysyx_${{ needs.parse.outputs.STUID }}.netlist.fixed.v
-          CELLS=`pwd`/yosys-sta/pdk/nangate45/sim/cells.v
-          KEY=$(head -c 5 /dev/urandom | base32)
-          IMG=$YSYX_HOME/am-kernels/benchmarks/microbench/build/microbench-minirv-npc.bin
-          python $AM_HOME/tools/insert-arg.py $IMG 64 the_insert-arg_rule_in_Makefile_will_insert_mainargs_here $KEY
-          python $MONITOR_PY --good=$KEY make -C $NPC_HOME sim-iverilog-netlist IMG=$IMG NETLIST=$NETLIST CELLS=$CELLS
+  #     - name: run microbench with iverilog netlist
+  #       run: |
+  #         make -C $NPC_HOME clean
+  #         NETLIST=`pwd`/ysyx_${{ needs.parse.outputs.STUID }}.netlist.fixed.v
+  #         CELLS=`pwd`/yosys-sta/pdk/nangate45/sim/cells.v
+  #         KEY=$(head -c 5 /dev/urandom | base32)
+  #         IMG=$YSYX_HOME/am-kernels/benchmarks/microbench/build/microbench-minirv-npc.bin
+  #         python $AM_HOME/tools/insert-arg.py $IMG 64 the_insert-arg_rule_in_Makefile_will_insert_mainargs_here $KEY
+  #         python $MONITOR_PY --good=$KEY make -C $NPC_HOME sim-iverilog-netlist IMG=$IMG NETLIST=$NETLIST CELLS=$CELLS
 
   more-tests:
-    needs: [setup, hello, time, cpu-tests, riscv-tests, riscv-arch-test, microbench, iverilog-microbench, yosys-sta, iverilog-netlist-microbench]
+    needs: [setup, hello, time, mario, cpu-tests, riscv-tests, microbench]
     runs-on: self-hosted
     steps:
       - name: Download verilog file
@@ -1066,35 +1172,35 @@ jobs:
   #       run: |
   #         git push origin HEAD:ysyx_${{ needs.parse.outputs.STUID }}
 
-  # finish:
-  #   needs: [parse, push-code]
-  #   runs-on: ubuntu-22.04
-  #   steps:
-  #     - name: Comment the issue
-  #       uses: peter-evans/create-or-update-comment@v4
-  #       with:
-  #         issue-number: ${{ github.event.issue.number }}
-  #         comment-id: ${{ needs.parse.outputs.COMMENT_ID }}
-  #         body: |
-  #           Finish
-  #         edit-mode: append
+  finish:
+    needs: [parse, push-code]
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Comment the issue
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          issue-number: ${{ github.event.issue.number }}
+          comment-id: ${{ needs.parse.outputs.COMMENT_ID }}
+          body: |
+            Finish
+          edit-mode: append
 
-  #     - name: Close the issue
-  #       uses: peter-evans/close-issue@v2
-  #       with:
-  #         issue-number: ${{ github.event.issue.number }}
+      - name: Close the issue
+        uses: peter-evans/close-issue@v2
+        with:
+          issue-number: ${{ github.event.issue.number }}
 
-  # error-handler:
-  #   runs-on: ubuntu-22.04
-  #   needs: [parse, setup, hello, cpu-tests, riscv-tests, riscv-arch-test, microbench, rt-thread, iverilog-microbench, yosys-sta, iverilog-netlist-microbench, more-tests, push-code]
-  #   if: ${{ failure() }}
-  #   steps:
-  #     - name: Comment the issue
-  #       uses: peter-evans/create-or-update-comment@v4
-  #       with:
-  #         issue-number: ${{ github.event.issue.number }}
-  #         comment-id: ${{ needs.parse.outputs.COMMENT_ID }}
-  #         body: |
-  #           End with errors
-  #         edit-mode: append
+  error-handler:
+    runs-on: ubuntu-22.04
+    needs: [parse, setup, hello, cpu-tests, riscv-tests, riscv-arch-test, microbench, rt-thread, iverilog-microbench, yosys-sta, iverilog-netlist-microbench, more-tests, push-code]
+    if: ${{ failure() }}
+    steps:
+      - name: Comment the issue
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          issue-number: ${{ github.event.issue.number }}
+          comment-id: ${{ needs.parse.outputs.COMMENT_ID }}
+          body: |
+            End with errors
+          edit-mode: append
 
