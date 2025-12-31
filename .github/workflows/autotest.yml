@@ -1173,7 +1173,7 @@ jobs:
   #         git push origin HEAD:ysyx_${{ needs.parse.outputs.STUID }}
 
   finish:
-    needs: [parse, push-code]
+    needs: [parse, setup, more-tests]
     runs-on: ubuntu-22.04
     steps:
       - name: Comment the issue
@@ -1192,7 +1192,7 @@ jobs:
 
   error-handler:
     runs-on: ubuntu-22.04
-    needs: [parse, setup, hello, cpu-tests, riscv-tests, riscv-arch-test, microbench, rt-thread, iverilog-microbench, yosys-sta, iverilog-netlist-microbench, more-tests, push-code]
+    needs: [parse, setup, time, mario, hello, cpu-tests, riscv-tests, microbench, more-tests]
     if: ${{ failure() }}
     steps:
       - name: Comment the issue
