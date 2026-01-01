@@ -7,15 +7,12 @@ ysyx-workbench
 ├── nemu
 ├── npc
 │   ├── ysyx_xxxxxxxx.v
+│   ├── csrc
 │   └── Makefile
 ├── Makefile
-├── patch
-│  └── ysyxSoC
 └── fceux-minirv-npc.bin //完成Makefile规范后在fceux下面生成
 ```
 注意：ysyx-workbench 可以更换名称，但 CI 流程会统一重命名为该名称
-
-    大概运行45min左右
 
 **重要说明**
 
@@ -73,17 +70,19 @@ CI流程要求
 本地测试内容:
 
     要在本地通过以下测试:
-    am-kernels/kernels/hello运行make ARCH=minirv-npc run
-    am-kernels/tests/cpu-tests运行make ARCH=minirv-npc run
-    am-kernels/benchmarks/microbench下运行make ARCH=minirv-npc run 
+    am-kernels/kernels/hello 下运行 make ARCH=minirv-npc run 成功输出
+    am-kernels/tests/am-tests 下运行 make ARCH=minirv-npc run mainargs=t 使得测试程序输出信息的间隔接近1秒
+    am-kernels/tests/cpu-tests 下运行 make ARCH=minirv-npc run 通过所有测试
+    am-kernels/benchmarks/microbench 下运行 make ARCH=minirv-npc run 通过
+    npc/ 下运行 make IMG=$YSYX_HOME/fceux-minirv-npc.bin run mainargs=mario 成功启动马里奥
     还有需要克隆的:
     git clone --depth 1 https://github.com/NJU-ProjectN/riscv-tests-am
-    运行make ARCH=minirv-npc -C riscv-tests-am run TEST_ISA=i
+    运行 make ARCH=minirv-npc -C riscv-tests-am run TEST_ISA=i 成功通过测试
 
 提交步骤
 
     在 GitHub 上创建新的远程仓库
-    将代码上传到仓库
+    将代码按照工程目录结构组织并上传到仓库
     在 https://github.com/OSCPU/ysyx-d-stage-ci 仓库中点击 issue 页面
     点击右上角的 New issue
     选择 "D阶段考核提交表单"
@@ -98,8 +97,5 @@ CI流程要求
     cpu-tests
     riscv-tests
     microbench
-
-待完成
-
     mario
 
