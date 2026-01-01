@@ -79,8 +79,6 @@ CI流程要求
     还有需要克隆的:
     git clone --depth 1 https://github.com/NJU-ProjectN/riscv-tests-am
     运行make ARCH=minirv-npc -C riscv-tests-am run TEST_ISA=i
-    git clone --depth 1 https://github.com/NJU-ProjectN/riscv-arch-test-am
-    运行make ARCH=minirv-npc -C riscv-arch-test-am run TEST_ISA="E"
 
 提交步骤
 
@@ -91,7 +89,6 @@ CI流程要求
     选择 "D阶段考核提交表单"
     在标题或注释中填写提交人信息
     创建 issue 后，点击 Actions 查看 CI 进度
-
 
 
 已完成

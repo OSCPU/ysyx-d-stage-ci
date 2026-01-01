@@ -709,12 +709,13 @@ jobs:
     runs-on: ubuntu-22.04
     env:
       # 配置变量
-      EXPECTED_OUTPUT: "*"  # 要检测的输出字符串（星号）
-      OUTPUT_CASE_SENSITIVE: false  # 是否区分大小写，星号不需要区分
-      MARIO_RUN_SECONDS: 10800  # 马里奥运行时长（秒）
+      EXPECTED_OUTPUT: "FPS"  # 要检测的输出字符串（FPS）
+      OUTPUT_CASE_SENSITIVE: true  # 是否区分大小写
+      MARIO_RUN_SECONDS: 10800  # 最大运行时长3小时（秒）
       TIMEOUT_SECONDS: 10900  # 总体超时时间（秒），比运行时长多一些
       LOG_LINES_ON_FAILURE: 100  # 失败时显示的最后日志行数
-      LOG_LINES_ON_SUCCESS: 20  # 成功时显示的包含星号的行数
+      LOG_LINES_ON_SUCCESS: 20  # 成功时显示的包含FPS的行数
+      CHECK_INTERVAL: 5  # 检查FPS的时间间隔（秒）
 
     steps:
       - uses: actions/checkout@v4
@@ -732,13 +733,14 @@ jobs:
         run: |
           echo "开始运行mario测试..."
           echo "配置:"
-          echo "  - 预期输出: '$EXPECTED_OUTPUT' (星号)"
+          echo "  - 预期输出: '$EXPECTED_OUTPUT' (FPS)"
           echo "  - 大小写敏感: $OUTPUT_CASE_SENSITIVE"
-          echo "  - 运行时长: ${MARIO_RUN_SECONDS}秒 ($((MARIO_RUN_SECONDS/60))分钟)"
-          echo "  - 总体超时时间: ${TIMEOUT_SECONDS}秒"
+          echo "  - 最大运行时长: ${MARIO_RUN_SECONDS}秒 ($((MARIO_RUN_SECONDS/3600))小时)"
+          echo "  - 检查间隔: ${CHECK_INTERVAL}秒"
           
           # 创建一个临时文件来记录输出
           LOGFILE="/tmp/npc_mario_$$.log"
+          PIDFILE="/tmp/npc_mario_$$.pid"
           
           # 根据大小写敏感设置选择grep选项
           if [ "$OUTPUT_CASE_SENSITIVE" = "true" ]; then
@@ -749,67 +751,98 @@ jobs:
             echo "检测模式: 不区分大小写"
           fi
           
-          echo -e "\n=== 启动马里奥仿真进程，运行${MARIO_RUN_SECONDS}秒 ==="
+          echo -e "\n=== 启动马里奥仿真进程 ==="
           
           # 记录开始时间
           START_TIME=$(date +%s)
+          MAX_END_TIME=$((START_TIME + MARIO_RUN_SECONDS))
           echo "开始时间: $(date -d @$START_TIME)"
-          echo "预计结束时间: $(date -d @$((START_TIME + MARIO_RUN_SECONDS)))"
+          echo "最晚结束时间: $(date -d @$MAX_END_TIME)"
           
-          # 使用timeout命令运行仿真
-          # 注意：这里将输出同时显示在控制台和保存到文件
-          timeout $MARIO_RUN_SECONDS make IMG=$YSYX_HOME/fceux-minirv-npc.bin -C $NPC_HOME run mainargs=mario 2>&1 | tee "$LOGFILE" &
+          # 启动仿真进程，并将输出重定向到日志文件和控制台
+          make IMG=$YSYX_HOME/fceux-minirv-npc.bin -C $NPC_HOME run mainargs=mario 2>&1 | tee "$LOGFILE" &
           SIM_PID=$!
           
+          # 保存PID以便后续清理
+          echo $SIM_PID > "$PIDFILE"
           echo "马里奥仿真进程PID: $SIM_PID"
           
-          # 等待仿真进程结束
-          echo -e "\n=== 等待马里奥运行 ${MARIO_RUN_SECONDS} 秒 ==="
-          wait $SIM_PID 2>/dev/null || true
+          FPS_FOUND=false
+          EARLY_EXIT=false
+          
+          echo -e "\n=== 监控马里奥输出，寻找FPS ==="
+          echo "将在${MARIO_RUN_SECONDS}秒内持续监控，一旦检测到FPS立即成功退出"
+          echo "检查间隔: 每${CHECK_INTERVAL}秒"
+          
+          # 监控循环
+          CURRENT_TIME=$(date +%s)
+          while [ $CURRENT_TIME -lt $MAX_END_TIME ]; do
+            # 检查进程是否还在运行
+            if ! kill -0 $SIM_PID 2>/dev/null; then
+              echo "⚠️ 马里奥进程已提前退出"
+              EARLY_EXIT=true
+              break
+            fi
+            
+            # 检查日志中是否包含FPS
+            if grep -q $GREP_OPTIONS "$EXPECTED_OUTPUT" "$LOGFILE"; then
+              echo "✅ 检测到 '$EXPECTED_OUTPUT' 输出！"
+              FPS_FOUND=true
+              break
+            fi
+            
+            # 等待一段时间再检查
+            sleep $CHECK_INTERVAL
+            CURRENT_TIME=$(date +%s)
+            
+            # 显示进度
+            ELAPSED=$((CURRENT_TIME - START_TIME))
+            REMAINING=$((MAX_END_TIME - CURRENT_TIME))
+            if [ $((ELAPSED % 60)) -eq 0 ]; then
+              echo "已运行: ${ELAPSED}秒，剩余: ${REMAINING}秒"
+            fi
+          done
           
           # 记录结束时间
           END_TIME=$(date +%s)
           ACTUAL_RUN_TIME=$((END_TIME - START_TIME))
+          
+          echo -e "\n=== 清理仿真进程 ==="
+          if [ -f "$PIDFILE" ]; then
+            PID_TO_KILL=$(cat "$PIDFILE")
+            kill -9 $PID_TO_KILL 2>/dev/null || true
+            rm -f "$PIDFILE"
+          fi
+          
+          # 给进程一点时间完全退出
+          sleep 2
+          
+          echo -e "\n=== 测试结果 ==="
+          echo "开始时间: $(date -d @$START_TIME)"
           echo "结束时间: $(date -d @$END_TIME)"
           echo "实际运行时长: ${ACTUAL_RUN_TIME}秒"
           
-          # 检查timeout的退出状态
-          TIMEOUT_EXIT_CODE=$?
-          echo "timeout退出状态: $TIMEOUT_EXIT_CODE"
-          
-          if [ $TIMEOUT_EXIT_CODE -eq 124 ]; then
-            echo "✅ 马里奥已运行指定时长（${MARIO_RUN_SECONDS}秒），正常结束"
-          elif [ $TIMEOUT_EXIT_CODE -eq 0 ]; then
-            echo "⚠️  马里奥提前结束（运行了${ACTUAL_RUN_TIME}秒）"
-          else
-            echo "⚠️  马里奥非正常结束，退出码: $TIMEOUT_EXIT_CODE"
-          fi
-          
-          # 确保进程已结束
-          kill -9 $SIM_PID 2>/dev/null || true
-          
-          echo -e "\n=== 检查输出中是否包含星号 '*' ==="
-          
-          # 检查输出中是否包含星号
-          if grep -q $GREP_OPTIONS "$EXPECTED_OUTPUT" "$LOGFILE"; then
-            echo "✅ 成功：检测到 '$EXPECTED_OUTPUT' 输出"
-            echo "=== 最后${LOG_LINES_ON_SUCCESS}行包含星号的输出 ==="
+          if [ "$FPS_FOUND" = "true" ]; then
+            echo "✅ 成功：在 ${ACTUAL_RUN_TIME} 秒内检测到 '$EXPECTED_OUTPUT' 输出"
+            echo "=== 最后${LOG_LINES_ON_SUCCESS}行包含FPS的输出 ==="
             grep $GREP_OPTIONS "$EXPECTED_OUTPUT" "$LOGFILE" | tail -$LOG_LINES_ON_SUCCESS
             echo -e "\n=== 测试统计 ==="
-            echo "总运行时间: ${ACTUAL_RUN_TIME}秒"
-            echo "星号出现次数: $(grep -c $GREP_OPTIONS "$EXPECTED_OUTPUT" "$LOGFILE")"
+            echo "FPS出现次数: $(grep -c $GREP_OPTIONS "$EXPECTED_OUTPUT" "$LOGFILE")"
             rm -f "$LOGFILE"
             exit 0
-          else
-            echo "❌ 错误：在 ${ACTUAL_RUN_TIME} 秒运行后未检测到 '$EXPECTED_OUTPUT' 输出"
+          elif [ "$EARLY_EXIT" = "true" ]; then
+            echo "❌ 错误：马里奥进程提前退出，运行 ${ACTUAL_RUN_TIME} 秒后未检测到 '$EXPECTED_OUTPUT'"
             echo "=== 最后${LOG_LINES_ON_FAILURE}行输出 ==="
             tail -$LOG_LINES_ON_FAILURE "$LOGFILE"
-            echo -e "\n=== 测试统计 ==="
-            echo "总运行时间: ${ACTUAL_RUN_TIME}秒"
+            rm -f "$LOGFILE"
+            exit 1
+          else
+            echo "❌ 错误：在 ${ACTUAL_RUN_TIME} 秒内未检测到 '$EXPECTED_OUTPUT' 输出"
+            echo "=== 最后${LOG_LINES_ON_FAILURE}行输出 ==="
+            tail -$LOG_LINES_ON_FAILURE "$LOGFILE"
             rm -f "$LOGFILE"
             exit 1
           fi
-
 
   cpu-tests:
     needs: setup
