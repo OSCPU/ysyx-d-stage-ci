@@ -711,8 +711,8 @@ jobs:
       # 配置变量
       EXPECTED_OUTPUT: "*"  # 要检测的输出字符串（星号）
       OUTPUT_CASE_SENSITIVE: false  # 是否区分大小写，星号不需要区分
-      MARIO_RUN_SECONDS: 7200  # 马里奥运行时长（秒），默认30分钟
-      TIMEOUT_SECONDS: 7300  # 总体超时时间（秒），比运行时长多一些
+      MARIO_RUN_SECONDS: 10800  # 马里奥运行时长（秒）
+      TIMEOUT_SECONDS: 10900  # 总体超时时间（秒），比运行时长多一些
       LOG_LINES_ON_FAILURE: 100  # 失败时显示的最后日志行数
       LOG_LINES_ON_SUCCESS: 20  # 成功时显示的包含星号的行数
 
