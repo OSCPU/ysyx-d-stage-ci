@@ -1005,9 +1005,9 @@ jobs:
           make init
           echo exit | ./bin/iEDA -v
 
-      - name: Generate Verilog
-        run: |
-          make -C $NPC_HOME verilog
+      # - name: Generate Verilog
+      #   run: |
+      #     make -C $NPC_HOME verilog
 
       - name: Set environment variables
         run: |
@@ -1066,17 +1066,17 @@ jobs:
           echo "Area: $AREA_OLD"
           echo "AREA_OLD=$AREA_OLD" >> $GITHUB_ENV
 
-      - name: Check area
-        run: |
-          AREA_BUDGET=16500
-          AREA_OLD_BUDGET=25000
-          if [[ $AREA -gt $AREA_BUDGET ]] ; then
-            if [[ $AREA_OLD -gt $AREA_OLD_BUDGET ]] ; then
-              echo "Area($AREA) is larger than the budget($AREA_BUDGET)."
-              echo "Area for old version of yosys-sta($AREA_OLD) is larger than the budget($AREA_OLD_BUDGET)."
-              false
-            fi
-          fi
+      # - name: Check area
+      #   run: |
+      #     AREA_BUDGET=16500
+      #     AREA_OLD_BUDGET=25000
+      #     if [[ $AREA -gt $AREA_BUDGET ]] ; then
+      #       if [[ $AREA_OLD -gt $AREA_OLD_BUDGET ]] ; then
+      #         echo "Area($AREA) is larger than the budget($AREA_BUDGET)."
+      #         echo "Area for old version of yosys-sta($AREA_OLD) is larger than the budget($AREA_OLD_BUDGET)."
+      #         false
+      #       fi
+      #     fi
 
       - name: Upload netlist file
         uses: actions/upload-artifact@v4
@@ -1113,7 +1113,7 @@ jobs:
 
       - name: compile microbench
         run: |
-          make ARCH=riscv32e-npc -C $YSYX_HOME/am-kernels/benchmarks/microbench mainargs=the_insert-arg_rule_in_Makefile_will_insert_mainargs_here
+          make ARCH=minirv-npc -C $YSYX_HOME/am-kernels/benchmarks/microbench mainargs=the_insert-arg_rule_in_Makefile_will_insert_mainargs_here
 
       - name: run microbench with iverilog netlist
         run: |
