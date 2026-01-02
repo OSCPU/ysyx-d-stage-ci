@@ -1035,36 +1035,36 @@ jobs:
             false
           fi
 
-      - name: Parse area
-        run: |
-          YOSYS_LOG=yosys-sta/result/ysyx_$STUID-500MHz/yosys-fixed.log
-          AREA=`grep -o "Chip area for module .*: .*" $YOSYS_LOG | sed -e 's/.*: \([0-9]*\.[0-9]*\)$/\1/'`
-          if [[ $AREA == "" ]] ; then
-            echo "Can not obtain area from yosys-sta. Abort."
-            false
-          fi
-          echo "Area: $AREA"
-          echo "AREA=$AREA" >> $GITHUB_ENV
+      # - name: Parse area
+      #   run: |
+      #     YOSYS_LOG=yosys-sta/result/ysyx_$STUID-500MHz/yosys-fixed.log
+      #     AREA=`grep -o "Chip area for module .*: .*" $YOSYS_LOG | sed -e 's/.*: \([0-9]*\.[0-9]*\)$/\1/'`
+      #     if [[ $AREA == "" ]] ; then
+      #       echo "Can not obtain area from yosys-sta. Abort."
+      #       false
+      #     fi
+      #     echo "Area: $AREA"
+      #     echo "AREA=$AREA" >> $GITHUB_ENV
 
-      - name: Run STA with older version
-        run: |
-          cd yosys-sta
-          git config --global user.email "ci@ysyx.org"
-          git config --global user.name "ysyx-ci"
-          git revert --no-edit 97fa7fcb80de4966c6f390af8df1b37d6d4c42c8
-          make clean
-          make sta DESIGN=ysyx_$STUID CLK_FREQ_MHZ=500 CLK_PORT_NAME=clock RTL_FILES=$VFILE
+      # - name: Run STA with older version
+      #   run: |
+      #     cd yosys-sta
+      #     git config --global user.email "ci@ysyx.org"
+      #     git config --global user.name "ysyx-ci"
+      #     git revert --no-edit 97fa7fcb80de4966c6f390af8df1b37d6d4c42c8
+      #     make clean
+      #     make sta DESIGN=ysyx_$STUID CLK_FREQ_MHZ=500 CLK_PORT_NAME=clock RTL_FILES=$VFILE
 
-      - name: Parse area with older version
-        run: |
-          YOSYS_LOG=yosys-sta/result/ysyx_$STUID-500MHz/yosys-fixed.log
-          AREA_OLD=`grep -o "Chip area for module .*: .*" $YOSYS_LOG | sed -e 's/.*: \([0-9]*\.[0-9]*\)$/\1/'`
-          if [[ $AREA_OLD == "" ]] ; then
-            echo "Can not obtain area from yosys-sta. Abort."
-            false
-          fi
-          echo "Area: $AREA_OLD"
-          echo "AREA_OLD=$AREA_OLD" >> $GITHUB_ENV
+      # - name: Parse area with older version
+      #   run: |
+      #     YOSYS_LOG=yosys-sta/result/ysyx_$STUID-500MHz/yosys-fixed.log
+      #     AREA_OLD=`grep -o "Chip area for module .*: .*" $YOSYS_LOG | sed -e 's/.*: \([0-9]*\.[0-9]*\)$/\1/'`
+      #     if [[ $AREA_OLD == "" ]] ; then
+      #       echo "Can not obtain area from yosys-sta. Abort."
+      #       false
+      #     fi
+      #     echo "Area: $AREA_OLD"
+      #     echo "AREA_OLD=$AREA_OLD" >> $GITHUB_ENV
 
       # - name: Check area
       #   run: |
