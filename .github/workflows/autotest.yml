@@ -279,6 +279,7 @@ jobs:
           git clone --depth 1 -b no-gui https://github.com/NJU-ProjectN/nvboard
           git clone --depth 1 -b ysyx6 https://github.com/OSCPU/ysyxSoC
           git clone --depth 1 https://github.com/NJU-ProjectN/fceux-am
+          git clone --depth 1 https://github.com/NJU-ProjectN/riscv-arch-test-am
 #          git clone --depth 1 https://github.com/NJU-ProjectN/rt-thread-am
 
 
@@ -906,6 +907,40 @@ jobs:
   #         make ARCH=minirv-npc -C riscv-arch-test-am run TEST_ISA=E ALL=add-01
   #         make ARCH=minirv-npc -C riscv-arch-test-am run TEST_ISA="E"
 
+####################################################################
+riscv-arch-test:
+  needs: setup
+  runs-on: ubuntu-22.04
+  strategy:
+    matrix:
+      test: [
+        "add-01", "addi-01", "and-01", "andi-01", "auipc-01", 
+        "beq-01", "bge-01", "bgeu-01", "blt-01", "bltu-01", 
+        "bne-01", "jal-01", "jalr-01", "lb-align-01", "lbu-align-01", 
+        "lh-align-01", "lhu-align-01", "lui-01", "lw-align-01", 
+        "or-01", "ori-01", "sb-align-01", "sh-align-01", "sll-01", 
+        "slli-01", "slt-01", "slti-01", "sltiu-01", "sltu-01", 
+        "sra-01", "srai-01", "srl-01", "srli-01", "sub-01", 
+        "sw-align-01", "xor-01", "xori-01"
+      ]
+  steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Common operations
+      uses: ./.github/actions/common
+      with:
+        YSYX_HOME: ${{ needs.setup.outputs.YSYX_HOME }}
+        cache-key: ${{ needs.setup.outputs.cache-key }}
+        MAKEFLAGS: ${{ needs.setup.outputs.MAKEFLAGS }}
+
+    - name: Run riscv-arch-test
+      run: |
+        echo "Running test: ${{ matrix.test }}"
+        make ARCH=minirv-npc -C riscv-arch-test-am run TEST_ISA=E ALL=${{ matrix.test }}
+
+####################################################################
   microbench:
     needs: setup
     runs-on: ubuntu-22.04
@@ -1034,7 +1069,7 @@ jobs:
             echo "The design contains latch, which is not allowed."
             false
           fi
-
+###面积
       # - name: Parse area
       #   run: |
       #     YOSYS_LOG=yosys-sta/result/ysyx_$STUID-500MHz/yosys-fixed.log
@@ -1077,7 +1112,7 @@ jobs:
       #         false
       #       fi
       #     fi
-
+###
       - name: Upload netlist file
         uses: actions/upload-artifact@v4
         with:
