@@ -908,56 +908,7 @@ jobs:
   #         make ARCH=minirv-npc -C riscv-arch-test-am run TEST_ISA="E"
 
 ####################################################################
-name: Run Specific RISC-V Test
-
-on:
-  workflow_dispatch:
-    inputs:
-      test_name:
-        description: 'Test to run'
-        required: true
-        type: choice
-        options:
-          - add-01
-          - addi-01
-          - and-01
-          - andi-01
-          - auipc-01
-          - beq-01
-          - bge-01
-          - bgeu-01
-          - blt-01
-          - bltu-01
-          - bne-01
-          - jal-01
-          - jalr-01
-          - lb-align-01
-          - lbu-align-01
-          - lh-align-01
-          - lhu-align-01
-          - lui-01
-          - lw-align-01
-          - or-01
-          - ori-01
-          - sb-align-01
-          - sh-align-01
-          - sll-01
-          - slli-01
-          - slt-01
-          - slti-01
-          - sltiu-01
-          - sltu-01
-          - sra-01
-          - srai-01
-          - srl-01
-          - srli-01
-          - sub-01
-          - sw-align-01
-          - xor-01
-          - xori-01
-
-jobs:
-  riscv-arch-test:
+  riscv-arch-test-add-01:
     needs: setup
     runs-on: ubuntu-22.04
     steps:
@@ -972,10 +923,693 @@ jobs:
           cache-key: ${{ needs.setup.outputs.cache-key }}
           MAKEFLAGS: ${{ needs.setup.outputs.MAKEFLAGS }}
 
-      - name: Run selected test
+      - name: riscv-arch-test
         run: |
-          echo "Running test: ${{ github.event.inputs.test_name }}"
-          make ARCH=minirv-npc -C riscv-arch-test-am run TEST_ISA=E ALL=${{ github.event.inputs.test_name }}
+          make ARCH=minirv-npc -C riscv-arch-test-am run TEST_ISA=E ALL=add-01
+
+  riscv-arch-test-addi-01:
+    needs: setup
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Common operations
+        uses: ./.github/actions/common
+        with:
+          YSYX_HOME: ${{ needs.setup.outputs.YSYX_HOME }}
+          cache-key: ${{ needs.setup.outputs.cache-key }}
+          MAKEFLAGS: ${{ needs.setup.outputs.MAKEFLAGS }}
+
+      - name: riscv-arch-test
+        run: |
+          make ARCH=minirv-npc -C riscv-arch-test-am run TEST_ISA=E ALL=addi-01
+
+  riscv-arch-test-and-01:
+    needs: setup
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Common operations
+        uses: ./.github/actions/common
+        with:
+          YSYX_HOME: ${{ needs.setup.outputs.YSYX_HOME }}
+          cache-key: ${{ needs.setup.outputs.cache-key }}
+          MAKEFLAGS: ${{ needs.setup.outputs.MAKEFLAGS }}
+
+      - name: riscv-arch-test
+        run: |
+          make ARCH=minirv-npc -C riscv-arch-test-am run TEST_ISA=E ALL=and-01
+
+  riscv-arch-test-andi-01:
+    needs: setup
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Common operations
+        uses: ./.github/actions/common
+        with:
+          YSYX_HOME: ${{ needs.setup.outputs.YSYX_HOME }}
+          cache-key: ${{ needs.setup.outputs.cache-key }}
+          MAKEFLAGS: ${{ needs.setup.outputs.MAKEFLAGS }}
+
+      - name: riscv-arch-test
+        run: |
+          make ARCH=minirv-npc -C riscv-arch-test-am run TEST_ISA=E ALL=andi-01
+
+  riscv-arch-test-auipc-01:
+    needs: setup
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Common operations
+        uses: ./.github/actions/common
+        with:
+          YSYX_HOME: ${{ needs.setup.outputs.YSYX_HOME }}
+          cache-key: ${{ needs.setup.outputs.cache-key }}
+          MAKEFLAGS: ${{ needs.setup.outputs.MAKEFLAGS }}
+
+      - name: riscv-arch-test
+        run: |
+          make ARCH=minirv-npc -C riscv-arch-test-am run TEST_ISA=E ALL=auipc-01
+
+  riscv-arch-test-beq-01:
+    needs: setup
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Common operations
+        uses: ./.github/actions/common
+        with:
+          YSYX_HOME: ${{ needs.setup.outputs.YSYX_HOME }}
+          cache-key: ${{ needs.setup.outputs.cache-key }}
+          MAKEFLAGS: ${{ needs.setup.outputs.MAKEFLAGS }}
+
+      - name: riscv-arch-test
+        run: |
+          make ARCH=minirv-npc -C riscv-arch-test-am run TEST_ISA=E ALL=beq-01
+
+  riscv-arch-test-bge-01:
+    needs: setup
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Common operations
+        uses: ./.github/actions/common
+        with:
+          YSYX_HOME: ${{ needs.setup.outputs.YSYX_HOME }}
+          cache-key: ${{ needs.setup.outputs.cache-key }}
+          MAKEFLAGS: ${{ needs.setup.outputs.MAKEFLAGS }}
+
+      - name: riscv-arch-test
+        run: |
+          make ARCH=minirv-npc -C riscv-arch-test-am run TEST_ISA=E ALL=bge-01
+
+  riscv-arch-test-bgeu-01:
+    needs: setup
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Common operations
+        uses: ./.github/actions/common
+        with:
+          YSYX_HOME: ${{ needs.setup.outputs.YSYX_HOME }}
+          cache-key: ${{ needs.setup.outputs.cache-key }}
+          MAKEFLAGS: ${{ needs.setup.outputs.MAKEFLAGS }}
+
+      - name: riscv-arch-test
+        run: |
+          make ARCH=minirv-npc -C riscv-arch-test-am run TEST_ISA=E ALL=bgeu-01
+
+  riscv-arch-test-blt-01:
+    needs: setup
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Common operations
+        uses: ./.github/actions/common
+        with:
+          YSYX_HOME: ${{ needs.setup.outputs.YSYX_HOME }}
+          cache-key: ${{ needs.setup.outputs.cache-key }}
+          MAKEFLAGS: ${{ needs.setup.outputs.MAKEFLAGS }}
+
+      - name: riscv-arch-test
+        run: |
+          make ARCH=minirv-npc -C riscv-arch-test-am run TEST_ISA=E ALL=blt-01
+
+  riscv-arch-test-bltu-01:
+    needs: setup
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Common operations
+        uses: ./.github/actions/common
+        with:
+          YSYX_HOME: ${{ needs.setup.outputs.YSYX_HOME }}
+          cache-key: ${{ needs.setup.outputs.cache-key }}
+          MAKEFLAGS: ${{ needs.setup.outputs.MAKEFLAGS }}
+
+      - name: riscv-arch-test
+        run: |
+          make ARCH=minirv-npc -C riscv-arch-test-am run TEST_ISA=E ALL=bltu-01
+
+  riscv-arch-test-bne-01:
+    needs: setup
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Common operations
+        uses: ./.github/actions/common
+        with:
+          YSYX_HOME: ${{ needs.setup.outputs.YSYX_HOME }}
+          cache-key: ${{ needs.setup.outputs.cache-key }}
+          MAKEFLAGS: ${{ needs.setup.outputs.MAKEFLAGS }}
+
+      - name: riscv-arch-test
+        run: |
+          make ARCH=minirv-npc -C riscv-arch-test-am run TEST_ISA=E ALL=bne-01
+
+  riscv-arch-test-jal-01:
+    needs: setup
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Common operations
+        uses: ./.github/actions/common
+        with:
+          YSYX_HOME: ${{ needs.setup.outputs.YSYX_HOME }}
+          cache-key: ${{ needs.setup.outputs.cache-key }}
+          MAKEFLAGS: ${{ needs.setup.outputs.MAKEFLAGS }}
+
+      - name: riscv-arch-test
+        run: |
+          make ARCH=minirv-npc -C riscv-arch-test-am run TEST_ISA=E ALL=jal-01
+
+  riscv-arch-test-jalr-01:
+    needs: setup
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Common operations
+        uses: ./.github/actions/common
+        with:
+          YSYX_HOME: ${{ needs.setup.outputs.YSYX_HOME }}
+          cache-key: ${{ needs.setup.outputs.cache-key }}
+          MAKEFLAGS: ${{ needs.setup.outputs.MAKEFLAGS }}
+
+      - name: riscv-arch-test
+        run: |
+          make ARCH=minirv-npc -C riscv-arch-test-am run TEST_ISA=E ALL=jalr-01
+
+  riscv-arch-test-lb-align-01:
+    needs: setup
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Common operations
+        uses: ./.github/actions/common
+        with:
+          YSYX_HOME: ${{ needs.setup.outputs.YSYX_HOME }}
+          cache-key: ${{ needs.setup.outputs.cache-key }}
+          MAKEFLAGS: ${{ needs.setup.outputs.MAKEFLAGS }}
+
+      - name: riscv-arch-test
+        run: |
+          make ARCH=minirv-npc -C riscv-arch-test-am run TEST_ISA=E ALL=lb-align-01
+
+  riscv-arch-test-lbu-align-01:
+    needs: setup
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Common operations
+        uses: ./.github/actions/common
+        with:
+          YSYX_HOME: ${{ needs.setup.outputs.YSYX_HOME }}
+          cache-key: ${{ needs.setup.outputs.cache-key }}
+          MAKEFLAGS: ${{ needs.setup.outputs.MAKEFLAGS }}
+
+      - name: riscv-arch-test
+        run: |
+          make ARCH=minirv-npc -C riscv-arch-test-am run TEST_ISA=E ALL=lbu-align-01
+
+  riscv-arch-test-lh-align-01:
+    needs: setup
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Common operations
+        uses: ./.github/actions/common
+        with:
+          YSYX_HOME: ${{ needs.setup.outputs.YSYX_HOME }}
+          cache-key: ${{ needs.setup.outputs.cache-key }}
+          MAKEFLAGS: ${{ needs.setup.outputs.MAKEFLAGS }}
+
+      - name: riscv-arch-test
+        run: |
+          make ARCH=minirv-npc -C riscv-arch-test-am run TEST_ISA=E ALL=lh-align-01
+
+  riscv-arch-test-lhu-align-01:
+    needs: setup
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Common operations
+        uses: ./.github/actions/common
+        with:
+          YSYX_HOME: ${{ needs.setup.outputs.YSYX_HOME }}
+          cache-key: ${{ needs.setup.outputs.cache-key }}
+          MAKEFLAGS: ${{ needs.setup.outputs.MAKEFLAGS }}
+
+      - name: riscv-arch-test
+        run: |
+          make ARCH=minirv-npc -C riscv-arch-test-am run TEST_ISA=E ALL=lhu-align-01
+
+  riscv-arch-test-lui-01:
+    needs: setup
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Common operations
+        uses: ./.github/actions/common
+        with:
+          YSYX_HOME: ${{ needs.setup.outputs.YSYX_HOME }}
+          cache-key: ${{ needs.setup.outputs.cache-key }}
+          MAKEFLAGS: ${{ needs.setup.outputs.MAKEFLAGS }}
+
+      - name: riscv-arch-test
+        run: |
+          make ARCH=minirv-npc -C riscv-arch-test-am run TEST_ISA=E ALL=lui-01
+
+  riscv-arch-test-lw-align-01:
+    needs: setup
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Common operations
+        uses: ./.github/actions/common
+        with:
+          YSYX_HOME: ${{ needs.setup.outputs.YSYX_HOME }}
+          cache-key: ${{ needs.setup.outputs.cache-key }}
+          MAKEFLAGS: ${{ needs.setup.outputs.MAKEFLAGS }}
+
+      - name: riscv-arch-test
+        run: |
+          make ARCH=minirv-npc -C riscv-arch-test-am run TEST_ISA=E ALL=lw-align-01
+
+  riscv-arch-test-or-01:
+    needs: setup
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Common operations
+        uses: ./.github/actions/common
+        with:
+          YSYX_HOME: ${{ needs.setup.outputs.YSYX_HOME }}
+          cache-key: ${{ needs.setup.outputs.cache-key }}
+          MAKEFLAGS: ${{ needs.setup.outputs.MAKEFLAGS }}
+
+      - name: riscv-arch-test
+        run: |
+          make ARCH=minirv-npc -C riscv-arch-test-am run TEST_ISA=E ALL=or-01
+
+  riscv-arch-test-ori-01:
+    needs: setup
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Common operations
+        uses: ./.github/actions/common
+        with:
+          YSYX_HOME: ${{ needs.setup.outputs.YSYX_HOME }}
+          cache-key: ${{ needs.setup.outputs.cache-key }}
+          MAKEFLAGS: ${{ needs.setup.outputs.MAKEFLAGS }}
+
+      - name: riscv-arch-test
+        run: |
+          make ARCH=minirv-npc -C riscv-arch-test-am run TEST_ISA=E ALL=ori-01
+
+  riscv-arch-test-sb-align-01:
+    needs: setup
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Common operations
+        uses: ./.github/actions/common
+        with:
+          YSYX_HOME: ${{ needs.setup.outputs.YSYX_HOME }}
+          cache-key: ${{ needs.setup.outputs.cache-key }}
+          MAKEFLAGS: ${{ needs.setup.outputs.MAKEFLAGS }}
+
+      - name: riscv-arch-test
+        run: |
+          make ARCH=minirv-npc -C riscv-arch-test-am run TEST_ISA=E ALL=sb-align-01
+
+  riscv-arch-test-sh-align-01:
+    needs: setup
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Common operations
+        uses: ./.github/actions/common
+        with:
+          YSYX_HOME: ${{ needs.setup.outputs.YSYX_HOME }}
+          cache-key: ${{ needs.setup.outputs.cache-key }}
+          MAKEFLAGS: ${{ needs.setup.outputs.MAKEFLAGS }}
+
+      - name: riscv-arch-test
+        run: |
+          make ARCH=minirv-npc -C riscv-arch-test-am run TEST_ISA=E ALL=sh-align-01
+
+  riscv-arch-test-sll-01:
+    needs: setup
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Common operations
+        uses: ./.github/actions/common
+        with:
+          YSYX_HOME: ${{ needs.setup.outputs.YSYX_HOME }}
+          cache-key: ${{ needs.setup.outputs.cache-key }}
+          MAKEFLAGS: ${{ needs.setup.outputs.MAKEFLAGS }}
+
+      - name: riscv-arch-test
+        run: |
+          make ARCH=minirv-npc -C riscv-arch-test-am run TEST_ISA=E ALL=sll-01
+
+  riscv-arch-test-slli-01:
+    needs: setup
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Common operations
+        uses: ./.github/actions/common
+        with:
+          YSYX_HOME: ${{ needs.setup.outputs.YSYX_HOME }}
+          cache-key: ${{ needs.setup.outputs.cache-key }}
+          MAKEFLAGS: ${{ needs.setup.outputs.MAKEFLAGS }}
+
+      - name: riscv-arch-test
+        run: |
+          make ARCH=minirv-npc -C riscv-arch-test-am run TEST_ISA=E ALL=slli-01
+
+  riscv-arch-test-slt-01:
+    needs: setup
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Common operations
+        uses: ./.github/actions/common
+        with:
+          YSYX_HOME: ${{ needs.setup.outputs.YSYX_HOME }}
+          cache-key: ${{ needs.setup.outputs.cache-key }}
+          MAKEFLAGS: ${{ needs.setup.outputs.MAKEFLAGS }}
+
+      - name: riscv-arch-test
+        run: |
+          make ARCH=minirv-npc -C riscv-arch-test-am run TEST_ISA=E ALL=slt-01
+
+  riscv-arch-test-slti-01:
+    needs: setup
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Common operations
+        uses: ./.github/actions/common
+        with:
+          YSYX_HOME: ${{ needs.setup.outputs.YSYX_HOME }}
+          cache-key: ${{ needs.setup.outputs.cache-key }}
+          MAKEFLAGS: ${{ needs.setup.outputs.MAKEFLAGS }}
+
+      - name: riscv-arch-test
+        run: |
+          make ARCH=minirv-npc -C riscv-arch-test-am run TEST_ISA=E ALL=slti-01
+
+  riscv-arch-test-sltiu-01:
+    needs: setup
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Common operations
+        uses: ./.github/actions/common
+        with:
+          YSYX_HOME: ${{ needs.setup.outputs.YSYX_HOME }}
+          cache-key: ${{ needs.setup.outputs.cache-key }}
+          MAKEFLAGS: ${{ needs.setup.outputs.MAKEFLAGS }}
+
+      - name: riscv-arch-test
+        run: |
+          make ARCH=minirv-npc -C riscv-arch-test-am run TEST_ISA=E ALL=sltiu-01
+
+  riscv-arch-test-sltu-01:
+    needs: setup
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Common operations
+        uses: ./.github/actions/common
+        with:
+          YSYX_HOME: ${{ needs.setup.outputs.YSYX_HOME }}
+          cache-key: ${{ needs.setup.outputs.cache-key }}
+          MAKEFLAGS: ${{ needs.setup.outputs.MAKEFLAGS }}
+
+      - name: riscv-arch-test
+        run: |
+          make ARCH=minirv-npc -C riscv-arch-test-am run TEST_ISA=E ALL=sltu-01
+
+  riscv-arch-test-sra-01:
+    needs: setup
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Common operations
+        uses: ./.github/actions/common
+        with:
+          YSYX_HOME: ${{ needs.setup.outputs.YSYX_HOME }}
+          cache-key: ${{ needs.setup.outputs.cache-key }}
+          MAKEFLAGS: ${{ needs.setup.outputs.MAKEFLAGS }}
+
+      - name: riscv-arch-test
+        run: |
+          make ARCH=minirv-npc -C riscv-arch-test-am run TEST_ISA=E ALL=sra-01
+
+  riscv-arch-test-srai-01:
+    needs: setup
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Common operations
+        uses: ./.github/actions/common
+        with:
+          YSYX_HOME: ${{ needs.setup.outputs.YSYX_HOME }}
+          cache-key: ${{ needs.setup.outputs.cache-key }}
+          MAKEFLAGS: ${{ needs.setup.outputs.MAKEFLAGS }}
+
+      - name: riscv-arch-test
+        run: |
+          make ARCH=minirv-npc -C riscv-arch-test-am run TEST_ISA=E ALL=srai-01
+
+  riscv-arch-test-srl-01:
+    needs: setup
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Common operations
+        uses: ./.github/actions/common
+        with:
+          YSYX_HOME: ${{ needs.setup.outputs.YSYX_HOME }}
+          cache-key: ${{ needs.setup.outputs.cache-key }}
+          MAKEFLAGS: ${{ needs.setup.outputs.MAKEFLAGS }}
+
+      - name: riscv-arch-test
+        run: |
+          make ARCH=minirv-npc -C riscv-arch-test-am run TEST_ISA=E ALL=srl-01
+
+  riscv-arch-test-srli-01:
+    needs: setup
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Common operations
+        uses: ./.github/actions/common
+        with:
+          YSYX_HOME: ${{ needs.setup.outputs.YSYX_HOME }}
+          cache-key: ${{ needs.setup.outputs.cache-key }}
+          MAKEFLAGS: ${{ needs.setup.outputs.MAKEFLAGS }}
+
+      - name: riscv-arch-test
+        run: |
+          make ARCH=minirv-npc -C riscv-arch-test-am run TEST_ISA=E ALL=srli-01
+
+  riscv-arch-test-sub-01:
+    needs: setup
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Common operations
+        uses: ./.github/actions/common
+        with:
+          YSYX_HOME: ${{ needs.setup.outputs.YSYX_HOME }}
+          cache-key: ${{ needs.setup.outputs.cache-key }}
+          MAKEFLAGS: ${{ needs.setup.outputs.MAKEFLAGS }}
+
+      - name: riscv-arch-test
+        run: |
+          make ARCH=minirv-npc -C riscv-arch-test-am run TEST_ISA=E ALL=sub-01
+
+  riscv-arch-test-sw-align-01:
+    needs: setup
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Common operations
+        uses: ./.github/actions/common
+        with:
+          YSYX_HOME: ${{ needs.setup.outputs.YSYX_HOME }}
+          cache-key: ${{ needs.setup.outputs.cache-key }}
+          MAKEFLAGS: ${{ needs.setup.outputs.MAKEFLAGS }}
+
+      - name: riscv-arch-test
+        run: |
+          make ARCH=minirv-npc -C riscv-arch-test-am run TEST_ISA=E ALL=sw-align-01
+
+  riscv-arch-test-xor-01:
+    needs: setup
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Common operations
+        uses: ./.github/actions/common
+        with:
+          YSYX_HOME: ${{ needs.setup.outputs.YSYX_HOME }}
+          cache-key: ${{ needs.setup.outputs.cache-key }}
+          MAKEFLAGS: ${{ needs.setup.outputs.MAKEFLAGS }}
+
+      - name: riscv-arch-test
+        run: |
+          make ARCH=minirv-npc -C riscv-arch-test-am run TEST_ISA=E ALL=xor-01
+
+  riscv-arch-test-xori-01:
+    needs: setup
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Common operations
+        uses: ./.github/actions/common
+        with:
+          YSYX_HOME: ${{ needs.setup.outputs.YSYX_HOME }}
+          cache-key: ${{ needs.setup.outputs.cache-key }}
+          MAKEFLAGS: ${{ needs.setup.outputs.MAKEFLAGS }}
+
+      - name: riscv-arch-test
+        run: |
+          make ARCH=minirv-npc -C riscv-arch-test-am run TEST_ISA=E ALL=xori-01
 
 ####################################################################
   microbench:
