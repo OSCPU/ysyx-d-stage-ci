@@ -8,6 +8,7 @@ ysyx-workbench
 ├── npc
 │   ├── ysyx_xxxxxxxx.v
 │   ├── csrc
+|	├── testbench/tb.v
 │   └── Makefile
 ├── Makefile
 └── fceux-minirv-npc.bin //完成Makefile规范后在fceux下面生成
@@ -57,7 +58,30 @@ $(IMAGE_BIN): $(IMAGE).elf $(HELLO_TEMPLATE)
 # 如果你还想保留反汇编，可以保留原来的 image 目标
 image: $(IMAGE_BIN)
 	@$(OBJDUMP) -d $(IMAGE).elf > $(IMAGE).txt
-``` 
+```
+	在npc/Makefile下添加以下内容
+```Makefile
+IVL_TOP_MODULE ?= tb
+IVL_SRC_VER = ysyx_xxxxxxxx.v 
+IVL_SRC_TB = $(shell find ./testbench -name "*.v")
+IVL_SRC  = $(IVL_SRC_VER) $(IVL_SRC_TB)
+IMG ?= 
+VVP_FILE   = sim.vvp
+IVL_FLAGS  = -g2012 -Wall -Winfloop -DCOSIM_XCHECK  # -g2012启用Verilog 2012标准，-Wall开启警告
+VVP_FLAGS  = -v -n  # -v显示详细仿真日志，-n启用四值仿真严格检查
+IMG_HEX    = test.hex 
+LOAD_ADDR ?= 0x00000000
+OBJCOPY    = riscv64-linux-gnu-objcopy
+sim-iverilog:
+	@$(OBJCOPY) -I binary -O verilog --adjust-vma=$(LOAD_ADDR) $(IMG) $(IMG_HEX)
+	@echo "========== 编译Verilog文件（启用四值仿真）=========="
+	@echo $(IVL_SRC)
+	iverilog $(IVL_FLAGS) -s $(IVL_TOP_MODULE) -o $(VVP_FILE) $(IVL_SRC)
+	@echo "编译完成，生成文件：$(VVP_FILE)"
+	@echo "========== 执行四值仿真 =========="
+	vvp $(VVP_FLAGS) $(VVP_FILE)
+```
+	
 
 CI流程要求
 特别注意：
