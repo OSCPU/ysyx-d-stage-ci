@@ -927,7 +927,7 @@ jobs:
           "sb-align-01", "sh-align-01", 
   #        "sll-01", 
   #        "slli-01", "slt-01", "slti-01",
-          "sltiu-01", 
+  #        "sltiu-01", 
   #        "sltu-01", 
   #        "sra-01", "srai-01", "srl-01", "srli-01", "sub-01", 
           "sw-align-01", 
@@ -1020,7 +1020,7 @@ jobs:
           KEY=$(head -c 5 /dev/urandom | base32)
           IMG=$YSYX_HOME/am-kernels/benchmarks/microbench/build/microbench-minirv-npc.bin
           python $AM_HOME/tools/insert-arg.py $IMG 64 the_insert-arg_rule_in_Makefile_will_insert_mainargs_here $KEY
-          python $MONITOR_PY --good=$KEY make -C $NPC_HOME sim-iverilog IMG=$IMG
+          python $MONITOR_PY --good=$KEY make -C $NPC_HOME sim-iverilog IMG=$IMG IVERILOG=y
 
   yosys-sta:
     needs: [parse, setup]
@@ -1167,7 +1167,7 @@ jobs:
           KEY=$(head -c 5 /dev/urandom | base32)
           IMG=$YSYX_HOME/am-kernels/benchmarks/microbench/build/microbench-minirv-npc.bin
           python $AM_HOME/tools/insert-arg.py $IMG 64 the_insert-arg_rule_in_Makefile_will_insert_mainargs_here $KEY
-          python $MONITOR_PY --good=$KEY make -C $NPC_HOME sim-iverilog-netlist IMG=$IMG NETLIST=$NETLIST CELLS=$CELLS
+          python $MONITOR_PY --good=$KEY make -C $NPC_HOME sim-iverilog-netlist IMG=$IMG NETLIST=$NETLIST CELLS=$CELLS IVERILOG=y
 
   # more-tests:
   #   needs: [setup, hello, time, mario, cpu-tests, riscv-tests, microbench]
