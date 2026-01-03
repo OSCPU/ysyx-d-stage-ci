@@ -1012,7 +1012,8 @@ jobs:
 
       - name: compile microbench
         run: |
-          make ARCH=minirv-npc -C $YSYX_HOME/am-kernels/benchmarks/microbench mainargs=the_insert-arg_rule_in_Makefile_will_insert_mainargs_here
+          make -C $YSYX_HOME/am-kernels/benchmarks/microbench clean
+          make ARCH=minirv-npc -C $YSYX_HOME/am-kernels/benchmarks/microbench  IVERILOG=y mainargs=the_insert-arg_rule_in_Makefile_will_insert_mainargs_here
 
       - name: run microbench with iverilog
         run: |
@@ -1020,7 +1021,7 @@ jobs:
           KEY=$(head -c 5 /dev/urandom | base32)
           IMG=$YSYX_HOME/am-kernels/benchmarks/microbench/build/microbench-minirv-npc.bin
           python $AM_HOME/tools/insert-arg.py $IMG 64 the_insert-arg_rule_in_Makefile_will_insert_mainargs_here $KEY
-          python $MONITOR_PY --good=$KEY make -C $NPC_HOME sim-iverilog IMG=$IMG IVERILOG=y
+          python $MONITOR_PY --good=$KEY make -C $NPC_HOME sim-iverilog IMG=$IMG
 
   yosys-sta:
     needs: [parse, setup]
@@ -1157,7 +1158,8 @@ jobs:
 
       - name: compile microbench
         run: |
-          make ARCH=minirv-npc -C $YSYX_HOME/am-kernels/benchmarks/microbench mainargs=the_insert-arg_rule_in_Makefile_will_insert_mainargs_here
+          make -C $YSYX_HOME/am-kernels/benchmarks/microbench clean
+          make ARCH=minirv-npc -C $YSYX_HOME/am-kernels/benchmarks/microbench IVERILOG=y mainargs=the_insert-arg_rule_in_Makefile_will_insert_mainargs_here
 
       - name: run microbench with iverilog netlist
         run: |
@@ -1167,7 +1169,7 @@ jobs:
           KEY=$(head -c 5 /dev/urandom | base32)
           IMG=$YSYX_HOME/am-kernels/benchmarks/microbench/build/microbench-minirv-npc.bin
           python $AM_HOME/tools/insert-arg.py $IMG 64 the_insert-arg_rule_in_Makefile_will_insert_mainargs_here $KEY
-          python $MONITOR_PY --good=$KEY make -C $NPC_HOME sim-iverilog-netlist IMG=$IMG NETLIST=$NETLIST CELLS=$CELLS IVERILOG=y
+          python $MONITOR_PY --good=$KEY make -C $NPC_HOME sim-iverilog-netlist IMG=$IMG NETLIST=$NETLIST CELLS=$CELLS
 
   # more-tests:
   #   needs: [setup, hello, time, mario, cpu-tests, riscv-tests, microbench]
