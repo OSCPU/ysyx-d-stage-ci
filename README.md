@@ -178,7 +178,7 @@ end
 
 
   // -------------------------- 6. 例化CPU顶层（100%匹配端口） --------------------------
-  ysyx_25080202 u_cpu_top (
+  ysyx_xxxxxxxx u_cpu_top ( xxxxxxxx为你的学号
     .clock          (clock),
     .reset          (reset),
     // IFU接口
@@ -205,7 +205,7 @@ end
     end
   end
   initial begin
-    #10000;  // 10ms超时（远大于正常执行时间）
+    #1000000000;  // 1000s超时（远大于正常执行时间）
     $display("[TB][%0t] 仿真超时，强制结束", $time);
     $finish;
   end
