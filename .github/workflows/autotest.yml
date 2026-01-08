@@ -1187,7 +1187,7 @@ jobs:
           KEY=$(head -c 5 /dev/urandom | base32)
           IMG=$YSYX_HOME/am-kernels/benchmarks/microbench/build/microbench-minirv-npc.bin
           python $AM_HOME/tools/insert-arg.py $IMG 64 the_insert-arg_rule_in_Makefile_will_insert_mainargs_here $KEY
-          python $MONITOR_PY --good=$KEY make -C $NPC_HOME sim-iverilog-netlist IMG=$IMG NETLIST=$NETLIST CELLS=$CELLS
+          python $MONITOR_PY --good=$KEY --timeout=7200 make -C $NPC_HOME sim-iverilog-netlist IMG=$IMG NETLIST=$NETLIST CELLS=$CELLS
 
   # more-tests:
   #   needs: [setup, hello, time, mario, cpu-tests, riscv-tests, microbench]
