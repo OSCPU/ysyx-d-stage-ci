@@ -49,7 +49,7 @@ module tb;
 
   // -------------------------- 2. 合并内存定义（8位宽，IFU/LSU共享） --------------------------
   localparam MEM_BASE     = 32'h30000000;  // 统一内存基址
-  localparam MEM_SIZE_B   = 1024*1024;         
+  localparam MEM_SIZE_B   = 1024*1024*16;         
   reg [7:0]  mem [0:MEM_SIZE_B-1];         // 8位宽字节数组（物理内存本质）
 
   // 加载程序+初始化内存（合并为单个数组）
@@ -65,7 +65,7 @@ module tb;
     $readmemh("test.hex", mem);
 
     // // 3. 调试打印：验证内存加载（打印前4字节，对应1个32位指令）
-    // #1;
+    #1;
     // $display("[MEM] 0x30000000 = 0x%02x", mem[0]);
     // $display("[MEM] 0x30000001 = 0x%02x", mem[1]);
     // $display("[MEM] 0x30000002 = 0x%02x", mem[2]);
@@ -107,8 +107,8 @@ module tb;
           io_ifu_rdata[23:16] <= mem[addr_ifu + 2];
           io_ifu_rdata[31:24] <= mem[addr_ifu + 3];
           io_ifu_respValid    <= 1'b1;
-        //   $display("[IFU][%0t] Req: addr=0x%08h → Rsp: data=0x%08h", 
-        //            $time, io_ifu_addr, {mem[addr_ifu+3], mem[addr_ifu+2], mem[addr_ifu+1], mem[addr_ifu]});
+          // $display("[IFU][%0t] Req: addr=0x%08h → Rsp: data=0x%08h", 
+          //          $time, io_ifu_addr, {mem[addr_ifu+3], mem[addr_ifu+2], mem[addr_ifu+1], mem[addr_ifu]});
         end else begin
           io_ifu_rdata     <= 32'hdeadbeef;      // 地址越界返回错误值
           io_ifu_respValid <= 1'b1;
@@ -118,9 +118,9 @@ module tb;
     end
   end
 
-  // -------------------------- 5. LSU响应逻辑（适配8位内存，支持字节/半字/字操作） --------------------------
+    // -------------------------- 5. LSU响应逻辑（适配8位内存，支持字节/半字/字操作） --------------------------
 wire [31:0] addr_lsu;
-assign addr_lsu = (io_lsu_addr>>2) - MEM_BASE;  // 内存访问仍用>>2，串口访问会跳过此逻辑
+assign addr_lsu = {io_lsu_addr[31:2],2'b0} - MEM_BASE;  // 内存访问仍用>>2，串口访问会跳过此逻辑
 // 定义串口地址（匹配C代码中的SERIAL_PORT）
 localparam SERIAL_PORT = 32'h10000000;
 
@@ -129,19 +129,24 @@ always @(posedge clock) begin
     io_lsu_respValid <= 1'b0;
     io_lsu_rdata     <= 32'b0;
   end else begin
-    io_lsu_respValid <= 1'b0;
     // 仅在CPU发起LSU请求时响应（io_lsu_reqValid有效）
     if (io_lsu_reqValid) begin
+      // 处理串口相关地址
       if (io_lsu_addr == SERIAL_PORT && io_lsu_wen) begin
-        // 提取写入的字符（char是8位，取最低字节）
-        reg [7:0] putch_char = io_lsu_wdata[7:0];
-        // 模拟串口输出字符（$write不换行，贴合串口输出特性）
-        $write("%c", putch_char);
-        // 可选：打印调试信息，方便排查
-        // $display("[UART][%0t] 输出字符: '%c' (ASCII=0x%02x)", $time, putch_char, putch_char);
+        // 模拟串口输出字符
+        $write("%c", io_lsu_wdata[7:0]);
+        // $display("uart out");
         io_lsu_respValid <= 1'b1;  // 串口写操作响应
       end
-      else if(((io_lsu_addr == SERIAL_PORT+32'd3 && io_lsu_wen)||(io_lsu_addr == SERIAL_PORT+32'd1 && io_lsu_wen))) begin
+      // 新增：串口状态寄存器（SERIAL_PORT+5）
+      else if (io_lsu_addr == SERIAL_PORT + 32'd5 && !io_lsu_wen) begin
+        io_lsu_rdata <= 32'h20202020;   // 返回状态：发送空闲
+        io_lsu_respValid <= 1'b1;
+        // $display("[UART][%0t] 读取状态寄存器: 0x%08h", $time, 32'h00000020);
+      end
+      // 其他串口寄存器（简单响应）
+      else if (((io_lsu_addr == SERIAL_PORT+32'd3 && io_lsu_wen) || 
+               (io_lsu_addr == SERIAL_PORT+32'd1 && io_lsu_wen))) begin
         io_lsu_respValid <= 1'b1;
       end
       // 原有逻辑：普通内存访问（保留>>2的地址计算）
@@ -152,8 +157,8 @@ always @(posedge clock) begin
           if (io_lsu_wmask[1]) mem[addr_lsu + 1] <= io_lsu_wdata[15:8];
           if (io_lsu_wmask[2]) mem[addr_lsu + 2] <= io_lsu_wdata[23:16];
           if (io_lsu_wmask[3]) mem[addr_lsu + 3] <= io_lsu_wdata[31:24];
-          // $display("[LSU][%0t] Write: addr=0x%08h wdata=0x%08h wmask=0x%1h size=%02b", 
-          //          $time, io_lsu_addr, io_lsu_wdata, io_lsu_wmask, io_lsu_size);
+          // $display("[LSU][%0t] Write: addr=0x%08h wdata=0x%08h wmask=0x%1h size=%02b pc:0x%08h " ,
+                  //  $time, io_lsu_addr, io_lsu_wdata, io_lsu_wmask, io_lsu_size , addr_lsu, io_ifu_addr);
           io_lsu_respValid <= 1'b1;  // 写操作响应
         end
         // 读操作（lb/lh/lw/lbu/lhu）：从8位内存拼接数据
@@ -164,21 +169,22 @@ always @(posedge clock) begin
           io_lsu_rdata[23:16] <= mem[addr_lsu + 2];
           io_lsu_rdata[31:24] <= mem[addr_lsu + 3];
           io_lsu_respValid    <= 1'b1;
-          // $display("[LSU][%0t] Read: addr=0x%08h rdata=0x%08h size=%02b", 
-          //          $time, io_lsu_addr, {mem[addr_lsu+3], mem[addr_lsu+2], mem[addr_lsu+1], mem[addr_lsu]}, io_lsu_size);
+          // $display("[LSU][%0t] Read: addr=0x%08h rdata=0x%08h size=%02b pc:0x%08h ", 
+                  //  $time, io_lsu_addr, {mem[addr_lsu+3], mem[addr_lsu+2], mem[addr_lsu+1], mem[addr_lsu]}, io_lsu_size, io_ifu_addr);
         end
       end else begin
           io_lsu_rdata     <= 32'hdeadbeef;  // 地址越界
           io_lsu_respValid <= 1'b1;
-          $display("[LSU][%0t] Req: addr=0x%08h → Out of range", $time, io_lsu_addr);
+          $display("[LSU][%0t] Req: addr=0x%08h → Out of range pc:0x%08h" , $time, io_lsu_addr ,io_ifu_addr);
       end
+    end else begin
+          io_lsu_respValid <= 1'b0;
     end
   end
 end
 
-
   // -------------------------- 6. 例化CPU顶层（100%匹配端口） --------------------------
-  ysyx_xxxxxxxx u_cpu_top ( xxxxxxxx为你的学号
+  ysyx_25080202 u_cpu_top (
     .clock          (clock),
     .reset          (reset),
     // IFU接口
@@ -204,11 +210,6 @@ end
       end
     end
   end
-  initial begin
-    #1000000000;  // 1000s超时（远大于正常执行时间）
-    $display("[TB][%0t] 仿真超时，强制结束", $time);
-    $finish;
-  end
 
 
   // -------------------------- 7. 波形导出（调试用） --------------------------
@@ -216,7 +217,6 @@ end
     // $dumpfile("wave.vcd");
     // $dumpvars(0, tb);                // 导出TB所有信号
     // $dumpvars(1, u_cpu_top);         // 导出CPU顶层所有信号
-    // $dumpvars(2, mem[0:31]);         // 导出前32字节内存（方便调试）
   end
 
 endmodule
@@ -349,6 +349,5 @@ echo exit | ./bin/iEDA -v
 
 问题
 
-    riscv-arch-tests部分通过不了的测试原因为经minirv特殊的编译器编译之后运行一些标签的函数会跳转到0x0000000从而循环
-    目前D阶段的在进行四值仿真的时候会有x态传播
+    riscv-arch-tests部分通过不了的测试原因为经minirv特殊的编译器编译之后运行一些标签的函数会跳转到0x0000000从而循环,还有访存0x01fddb79超限
 

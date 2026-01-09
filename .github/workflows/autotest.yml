@@ -1189,18 +1189,18 @@ jobs:
           python $AM_HOME/tools/insert-arg.py $IMG 64 the_insert-arg_rule_in_Makefile_will_insert_mainargs_here $KEY
           python $MONITOR_PY --good=$KEY --timeout=21600 make -C $NPC_HOME sim-iverilog-netlist IMG=$IMG NETLIST=$NETLIST CELLS=$CELLS
 
-  # more-tests:
-  #   needs: [setup, hello, time, mario, cpu-tests, riscv-tests, microbench]
-  #   runs-on: self-hosted
-  #   steps:
-  #     - name: Download verilog file
-  #       uses: actions/download-artifact@v4
-  #       with:
-  #         name: verilog
-  #     - name: More tests
-  #       run: |
-  #         VFILE=`basename "${{ needs.setup.outputs.VFILE }}"`
-  #         bash ../../../more-tests.sh `realpath $VFILE`
+  more-tests:
+    needs: [setup, hello, time, mario, cpu-tests, riscv-tests, microbench , iverilog-microbench, riscv-arch-test, yosys-sta, iverilog-netlist-microbench]
+    runs-on: self-hosted
+    steps:
+      - name: Download verilog file
+        uses: actions/download-artifact@v4
+        with:
+          name: verilog
+      - name: More tests
+        run: |
+          VFILE=`basename "${{ needs.setup.outputs.VFILE }}"`
+          bash ../../../more-tests.sh `realpath $VFILE`
 
   # push-code:
   #   needs: [parse, setup, more-tests]
@@ -1270,35 +1270,35 @@ jobs:
   #       run: |
   #         git push origin HEAD:ysyx_${{ needs.parse.outputs.STUID }}
 
-  # finish:
-  #   needs: [parse, setup, more-tests]
-  #   runs-on: ubuntu-22.04
-  #   steps:
-  #     - name: Comment the issue
-  #       uses: peter-evans/create-or-update-comment@v4
-  #       with:
-  #         issue-number: ${{ github.event.issue.number }}
-  #         comment-id: ${{ needs.parse.outputs.COMMENT_ID }}
-  #         body: |
-  #           Finish
-  #         edit-mode: append
+  finish:
+    needs: [parse, setup, more-tests]
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Comment the issue
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          issue-number: ${{ github.event.issue.number }}
+          comment-id: ${{ needs.parse.outputs.COMMENT_ID }}
+          body: |
+            Finish
+          edit-mode: append
 
-  #     - name: Close the issue
-  #       uses: peter-evans/close-issue@v2
-  #       with:
-  #         issue-number: ${{ github.event.issue.number }}
+      - name: Close the issue
+        uses: peter-evans/close-issue@v2
+        with:
+          issue-number: ${{ github.event.issue.number }}
 
-  # error-handler:
-  #   runs-on: ubuntu-22.04
-  #   needs: [parse, setup, time, mario, hello, cpu-tests, riscv-tests, microbench, more-tests]
-  #   if: ${{ failure() }}
-  #   steps:
-  #     - name: Comment the issue
-  #       uses: peter-evans/create-or-update-comment@v4
-  #       with:
-  #         issue-number: ${{ github.event.issue.number }}
-  #         comment-id: ${{ needs.parse.outputs.COMMENT_ID }}
-  #         body: |
-  #           End with errors
-  #         edit-mode: append
+  error-handler:
+    runs-on: ubuntu-22.04
+    needs: [parse, setup, time, mario, hello, cpu-tests, riscv-tests, microbench, more-tests]
+    if: ${{ failure() }}
+    steps:
+      - name: Comment the issue
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          issue-number: ${{ github.event.issue.number }}
+          comment-id: ${{ needs.parse.outputs.COMMENT_ID }}
+          body: |
+            End with errors
+          edit-mode: append
 
